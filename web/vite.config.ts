@@ -9,19 +9,22 @@ import {BuildMode, BuildPaths} from './config/build/types/config'
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const labName = process.env.VITE_LAB || 'lab1';
+const taskName = process.env.VITE_LAB || 'task1';
+
 export default (configEnv: ConfigEnv) => {
 	const mode = (configEnv.mode ?? 'development') as BuildMode
 	const isDev = mode === 'development'
 	const paths: BuildPaths = {
 		outDir: path.resolve(__dirname, 'dist'),
-		entry: path.resolve(__dirname, 'src', 'index.html'),
+		entry: path.resolve(__dirname, labName, taskName, 'index.html'),
 	}
 
 	return buildViteConfig({
 		minify: !isDev,
 		open: true,
 		port: 3000,
-		root: path.resolve(__dirname, 'src'),
+		root: path.resolve(__dirname, labName, taskName),
 		paths,
 	})
 }
