@@ -13,7 +13,6 @@ const __dirname = path.dirname(__filename);
 
     const results = await eslint.lintFiles([
         'src/**/*.ts',
-        'src/**/*.tsx',
     ]);
 
     await ESLint.outputFixes(results)

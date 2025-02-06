@@ -3,7 +3,7 @@ import {ServerOptions} from 'vite'
 
 const buildServer = (args: BuildOptions): ServerOptions => ({
 	port: args.port,
-	open: args.paths.html,
+	open: args.open,
 })
 
 export {

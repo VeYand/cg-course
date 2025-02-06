@@ -10,23 +10,14 @@
     },
     "plugins": [
         "@typescript-eslint",
-        "react",
-        "react-hooks",
         "import"
     ],
     "settings": {
         "import/parsers": {
-            "@typescript-eslint/parser": [".ts", ".tsx"]
+            "@typescript-eslint/parser": [".ts"]
         }
     },
     "rules": {
-        "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": [
-            "error",
-            {
-                "additionalHooks": "WithDeps$"
-            }
-        ],
         "import/exports-last": "error",
         "import/group-exports": "error",
         "import/newline-after-import": "error",
@@ -463,8 +454,6 @@
             ],
             "parser": "@typescript-eslint/parser",
             "rules": {
-                "react/react-in-jsx-scope": "off",
-
                 "@typescript-eslint/array-type": [
                     "error",
                     {

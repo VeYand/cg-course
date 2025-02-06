@@ -8,6 +8,7 @@ const buildBuild = (args: BuildOptions): ViteBuildOptions => ({
 			app: args.paths.entry,
 		},
 	},
+	outDir: args.paths.outDir,
 })
 
 export {
