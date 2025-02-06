@@ -17,14 +17,14 @@ export default (configEnv: ConfigEnv) => {
 	const isDev = mode === 'development'
 	const paths: BuildPaths = {
 		outDir: path.resolve(__dirname, 'dist'),
-		entry: path.resolve(__dirname, labName, taskName, 'index.html'),
+		entry: path.resolve(__dirname, 'src', labName, taskName, 'index.html'),
 	}
 
 	return buildViteConfig({
 		minify: !isDev,
 		open: true,
 		port: 3000,
-		root: path.resolve(__dirname, labName, taskName),
+		root: path.resolve(__dirname, 'src', labName, taskName),
 		paths,
 	})
 }
