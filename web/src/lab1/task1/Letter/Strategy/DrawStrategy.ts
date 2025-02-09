@@ -6,16 +6,29 @@ type IDrawStrategy = {
 }
 
 const drawShape = (gl: WebGLRenderingContext, program: WebGLProgram, vertices: Float32Array, color: Color) => {
-	const positionAttributeLocation = gl.getAttribLocation(program, 'a_position')
-	const colorUniformLocation = gl.getUniformLocation(program, 'u_color')
+	const positionAttributeLocation = gl.getAttribLocation(program, 'position')
+	const colorUniformLocation = gl.getUniformLocation(program, 'color')
 
-	gl.enableVertexAttribArray(positionAttributeLocation)
-	gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+	if (positionAttributeLocation === -1) {
+		console.error('Attribute "position" not found in shader')
+		return
+	}
+
+	if (!colorUniformLocation) {
+		console.error('Uniform "color" not found in shader')
+		return
+	}
+
+	const buffer = gl.createBuffer()
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
 	gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
+	gl.enableVertexAttribArray(positionAttributeLocation)
 	gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0)
 
+	gl.useProgram(program)
 	gl.uniform4fv(colorUniformLocation, [color.r, color.g, color.b, 1])
+
 	gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2)
 }
 

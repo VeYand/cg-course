@@ -11,6 +11,12 @@ if (!gl) {
 	throw new Error('WebGL not supported')
 }
 
+const resizeCanvas = () => {
+	canvas.width = window.innerWidth
+	canvas.height = window.innerHeight
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+}
+
 const vertexShaderSource = `
     attribute vec2 position;
     void main() {
@@ -72,9 +78,9 @@ const render = () => {
 	gl.clear(gl.COLOR_BUFFER_BIT)
 
 	const letters = [
-		new Letter({x: 0, y: 0}, {r: 1, g: 0, b: 0}, new DrawStrategyTC()),
-		new Letter({x: 0.3, y: 0}, {r: 0, g: 1, b: 0}, new DrawStrategyB()),
-		new Letter({x: -0.3, y: 0}, {r: 0, g: 0, b: 1}, new DrawStrategyL()),
+		new Letter({x: -0.3, y: 0}, {r: 1, g: 0, b: 0}, new DrawStrategyTC()),
+		new Letter({x: 0, y: 0}, {r: 0, g: 1, b: 0}, new DrawStrategyB()),
+		new Letter({x: 0.3, y: 0}, {r: 0, g: 0, b: 1}, new DrawStrategyL()),
 	]
 
 	for (const letter of letters) {
@@ -82,6 +88,11 @@ const render = () => {
 	}
 }
 
+resizeCanvas()
 render()
+window.addEventListener('resize', () => {
+	resizeCanvas()
+	render()
+})
 
 export {}
