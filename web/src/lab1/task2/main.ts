@@ -1,4 +1,5 @@
 import {Trolleybus} from './Trolleybus'
+import {Size} from './types'
 import {Wires} from './Wires'
 
 class App {
@@ -9,6 +10,12 @@ class App {
 	private isDragging = false
 	private offsetX = 0
 	private offsetY = 0
+
+	private readonly WIRE_HEIGHT = 5
+	private readonly TROLLEYBUS_SIZE: Size = {width: 100, height: 50}
+	private readonly TROLLEYBUS_COLOR = {r: 0, g: 1, b: 0}
+	private readonly WIRE_COLOR = {r: 0, g: 0, b: 0}
+	private readonly WIRE_Y_OFFSET = 100
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
@@ -27,17 +34,17 @@ class App {
 		const centerY = this.canvas.height / 2
 
 		this.wires = new Wires(
-			{x: 0, y: centerY - 100},
-			{width: this.canvas.width, height: 5},
-			{r: 0, g: 0, b: 0},
+			{x: 0, y: centerY - this.WIRE_Y_OFFSET},
+			{width: this.canvas.width, height: this.WIRE_HEIGHT},
+			this.WIRE_COLOR,
 		)
 
 		this.trolleybus = new Trolleybus(
 			{x: centerX, y: centerY},
 			this.wires.getPosition().y,
 			this.wires.getPosition().y + this.wires.getSize().height,
-			{width: 100, height: 50},
-			{r: 0, g: 1, b: 0},
+			this.TROLLEYBUS_SIZE,
+			this.TROLLEYBUS_COLOR,
 		)
 
 		this.setupEventListeners()
