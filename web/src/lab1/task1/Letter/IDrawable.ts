@@ -1,5 +1,5 @@
 type IDrawable = {
-	draw: (gl: WebGLRenderingContext, program: WebGLProgram) => void,
+	draw: (ctx: CanvasRenderingContext2D) => void,
 }
 
 export type {

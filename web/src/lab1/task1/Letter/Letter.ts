@@ -11,8 +11,8 @@ class Letter implements IDrawable {
 	) {
 	}
 
-	draw(gl: WebGLRenderingContext, program: WebGLProgram): void {
-		this.m_drawStrategy.draw(gl, program, this.m_position, this.m_color)
+	draw(ctx: CanvasRenderingContext2D): void {
+		this.m_drawStrategy.draw(ctx, this.m_position, this.m_color)
 	}
 }
 
