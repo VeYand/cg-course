@@ -22,8 +22,8 @@ let offsetY = 0
 
 const trolleybus = new Trolleybus(
 	{x: centerX, y: centerY},
-	{x: wires.getSize().width / 2, y: wires.getPosition().y},
-	{x: wires.getSize().width / 2, y: wires.getPosition().y + wires.getSize().height},
+	wires.getPosition().y,
+	wires.getPosition().y + wires.getSize().height,
 	{width: 100, height: 50},
 	{r: 0, g: 1, b: 0},
 )
@@ -53,7 +53,6 @@ canvas.addEventListener('mousemove', event => {
 		const newY = mouseY - offsetY
 
 		trolleybus.setPosition({x: newX, y: newY})
-		trolleybus.updatePantographPositions(wires.getPosition(), wires.getSize())
 	}
 })
 
