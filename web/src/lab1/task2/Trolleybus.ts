@@ -53,16 +53,16 @@ class Trolleybus {
 		ctx.lineWidth = 2
 
 		ctx.beginPath()
-		ctx.moveTo(this.trolleybusPosition.x + 20, this.trolleybusPosition.y)
-		const firstWireX = this.trolleybusPosition.x - 30
+		ctx.moveTo(this.trolleybusPosition.x + this.trolleybusSize.width / 2 - 10, this.trolleybusPosition.y)
+		const firstWireX = this.trolleybusPosition.x + this.trolleybusSize.width / 2 - 35
 		ctx.lineTo(firstWireX, this.firstWireY)
 		ctx.stroke()
 		ctx.fillStyle = 'red'
 		ctx.fillRect(firstWireX - 5, this.firstWireY - 2.5, 10, 5)
 
 		ctx.beginPath()
-		ctx.moveTo(this.trolleybusPosition.x + this.trolleybusSize.width - 20, this.trolleybusPosition.y)
-		const secondWireX = this.trolleybusPosition.x + this.trolleybusSize.width - 70
+		ctx.moveTo(this.trolleybusPosition.x + this.trolleybusSize.width / 2 + 10, this.trolleybusPosition.y)
+		const secondWireX = this.trolleybusPosition.x + this.trolleybusSize.width / 2 - 15
 		ctx.lineTo(secondWireX, this.secondWireY)
 		ctx.stroke()
 		ctx.fillStyle = 'red'
