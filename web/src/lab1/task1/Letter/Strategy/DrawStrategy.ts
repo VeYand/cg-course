@@ -11,7 +11,9 @@ class DrawStrategyTC implements IDrawStrategy {
 
 		ctx.fillRect(position.x - 20, position.y - 50, 10, 100)
 		ctx.fillRect(position.x + 10, position.y - 50, 10, 100)
-		ctx.fillRect(position.x - 20, position.y - 50, 40, 10)
+
+		ctx.fillRect(position.x - 20, position.y + 40, 55, 10)
+		ctx.fillRect(position.x + 35, position.y + 40, 10, 30)
 	}
 }
 
@@ -20,19 +22,31 @@ class DrawStrategyB implements IDrawStrategy {
 		ctx.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`
 
 		ctx.fillRect(position.x - 20, position.y - 50, 10, 100)
-		ctx.fillRect(position.x - 10, position.y + 30, 30, 10)
-		ctx.fillRect(position.x - 10, position.y + 5, 20, 5)
-		ctx.fillRect(position.x + 10, position.y + 5, 10, 45)
-		ctx.fillRect(position.x + 10, position.y - 50, 10, 55)
+
+		ctx.fillRect(position.x - 10, position.y + 40, 28, 10)
+		ctx.fillRect(position.x - 10, position.y - 5, 28, 10)
+		ctx.fillRect(position.x - 10, position.y - 50, 28, 10)
+
+		ctx.fillRect(position.x + 10, position.y - 45, 10, 40)
+		ctx.fillRect(position.x + 10, position.y, 10, 40)
 	}
 }
 
 class DrawStrategyL implements IDrawStrategy {
 	draw(ctx: CanvasRenderingContext2D, position: Position, color: Color): void {
-		ctx.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`
+		ctx.strokeStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`
+		ctx.lineWidth = 10
+		ctx.lineCap = 'round'
 
-		ctx.fillRect(position.x - 20, position.y - 50, 10, 100)
-		ctx.fillRect(position.x - 10, position.y + 40, 30, 10)
+		ctx.beginPath()
+		ctx.moveTo(position.x - 25, position.y + 40)
+		ctx.lineTo(position.x, position.y - 40)
+		ctx.stroke()
+
+		ctx.beginPath()
+		ctx.lineTo(position.x, position.y - 40)
+		ctx.lineTo(position.x + 25, position.y + 40)
+		ctx.stroke()
 	}
 }
 
