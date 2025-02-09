@@ -28,6 +28,23 @@ class Trolleybus {
 		this.drawPantograph(ctx, {x: this.trolleybusPosition.x + 20, y: this.trolleybusPosition.y}, this.secondConnectorPosition)
 	}
 
+	setPosition(newPosition: Position) {
+		this.trolleybusPosition = newPosition
+	}
+
+	getPosition(): Position {
+		return this.trolleybusPosition
+	}
+
+	getSize(): Size {
+		return this.trolleybusSize
+	}
+
+	updatePantographPositions(wirePosition: Position, wireSize: Size) {
+		this.firstConnectorPosition = {x: wireSize.width / 2, y: wirePosition.y}
+		this.secondConnectorPosition = {x: wireSize.width / 2, y: wirePosition.y + wireSize.height}
+	}
+
 	private drawWindow(ctx: CanvasRenderingContext2D, x: number, y: number) {
 		ctx.fillStyle = 'lightblue'
 		ctx.fillRect(x, y, 20, 20)
@@ -53,6 +70,4 @@ class Trolleybus {
 	}
 }
 
-export {
-	Trolleybus,
-}
+export {Trolleybus}
