@@ -11,9 +11,33 @@ if (!ctx) {
 	throw new Error('Canvas 2D context not supported')
 }
 
+const amplitude = 50
+const period = 2000
+
+type LetterData = {
+	letter: Letter,
+	phase: number,
+}
+
+const letters: LetterData[] = [
+	{
+		letter: new Letter({x: 0, y: 0}, {r: 1, g: 0, b: 0}, new DrawStrategyTC()),
+		phase: 0,
+	},
+	{
+		letter: new Letter({x: 0, y: 0}, {r: 0, g: 1, b: 0}, new DrawStrategyB()),
+		phase: Math.PI / 3,
+	},
+	{
+		letter: new Letter({x: 0, y: 0}, {r: 0, g: 0, b: 1}, new DrawStrategyL()),
+		phase: (2 * Math.PI) / 3,
+	},
+]
+
 const resizeCanvas = () => {
 	canvas.width = window.innerWidth
 	canvas.height = window.innerHeight
+	render()
 }
 
 const render = () => {
@@ -22,23 +46,23 @@ const render = () => {
 	const centerX = canvas.width / 2
 	const centerY = canvas.height / 2
 
-	const letters = [
-		new Letter({x: centerX - 100, y: centerY}, {r: 1, g: 0, b: 0}, new DrawStrategyTC()),
-		new Letter({x: centerX, y: centerY}, {r: 0, g: 1, b: 0}, new DrawStrategyB()),
-		new Letter({x: centerX + 100, y: centerY}, {r: 0, g: 0, b: 1}, new DrawStrategyL()),
-	]
+	const time = Date.now()
 
-	for (const letter of letters) {
+	letters.forEach((letterData, index) => {
+		const {letter, phase} = letterData
+		const offsetY = amplitude * Math.sin(2 * Math.PI * time / period + phase)
+		letter.setPosition({
+			x: centerX + (index - 1) * 100,
+			y: centerY + offsetY,
+		})
+
 		letter.draw(ctx)
-	}
+	})
+
+	requestAnimationFrame(render)
 }
 
-resizeCanvas()
 render()
+window.addEventListener('resize', resizeCanvas)
 
-window.addEventListener('resize', () => {
-	resizeCanvas()
-	render()
-})
-
-export { }
+export {}

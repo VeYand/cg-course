@@ -11,6 +11,10 @@ class Letter implements IDrawable {
 	) {
 	}
 
+	setPosition(position: Position): void {
+		this.m_position = position
+	}
+
 	draw(ctx: CanvasRenderingContext2D): void {
 		this.m_drawStrategy.draw(ctx, this.m_position, this.m_color)
 	}
