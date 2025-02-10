@@ -110,6 +110,10 @@ class GameDocument {
 		this.notifyListeners()
 	}
 
+	getMaxMistakesCount(): number {
+		return this.maxMistakes
+	}
+
 	private getRandomWord(): Word {
 		if (this.config.words.length === 0) {
 			throw new Error('No words available in configuration')
