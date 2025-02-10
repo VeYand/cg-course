@@ -125,13 +125,19 @@ class Gallows implements Renderer, Notifiable {
 	}
 
 	private showWin() {
-		alert('Победа! Начать заново?')
-		this.gameDocument.newGame()
+		setTimeout(() => {
+			if (confirm('Победа! Начать заново?')) {
+				this.gameDocument.newGame()
+			}
+		})
 	}
 
 	private showGameOver() {
-		alert('Поражение! Попробовать еще раз?')
-		this.gameDocument.newGame()
+		setTimeout(() => {
+			if (confirm('Поражение! Попробовать еще раз?')) {
+				this.gameDocument.newGame()
+			}
+		})
 	}
 }
 

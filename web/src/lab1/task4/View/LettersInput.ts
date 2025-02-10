@@ -6,7 +6,6 @@ class LettersInput implements Renderer, Notifiable {
 	private state: DocumentState | undefined
 	private readonly container: HTMLDivElement
 	private buttons: HTMLButtonElement[] = []
-	private usedLetters = new Set<string>()
 
 	constructor(
 		private readonly gameDocument: GameDocument,
@@ -22,7 +21,6 @@ class LettersInput implements Renderer, Notifiable {
 	}
 
 	render(): void {
-		this.usedLetters.clear()
 		this.buttons.forEach(button => {
 			button.disabled = false
 			button.style.backgroundColor = ''
@@ -31,12 +29,18 @@ class LettersInput implements Renderer, Notifiable {
 
 	notify(gameState: DocumentState): void {
 		this.state = gameState
+		this.buttons.forEach(button => {
+			const letter = button.textContent || ''
+			const isUsed = gameState.usedLetters.includes(letter)
+			const isCorrect = gameState.guessedLetters.some(g => g.char === letter)
 
-		if (gameState.gameState === 'over') {
-			this.buttons.forEach(button => {
-				button.disabled = true
-			})
-		}
+			button.disabled = isUsed || gameState.gameState !== 'playing'
+			button.style.backgroundColor = isCorrect
+				? '#90EE90'
+				: isUsed
+					? '#FF7F7F'
+					: ''
+		})
 	}
 
 	private createButtons() {
@@ -52,13 +56,8 @@ class LettersInput implements Renderer, Notifiable {
 	}
 
 	private handleGuess(char: string) {
-		if (this.usedLetters.has(char)) {
-			return
-		}
-
 		try {
 			this.gameDocument?.guess(char)
-			this.usedLetters.add(char)
 			this.updateButtonState(char)
 		}
 		catch (e) {

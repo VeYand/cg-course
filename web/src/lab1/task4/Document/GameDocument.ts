@@ -20,6 +20,7 @@ type DocumentState = {
 	wordLength: number,
 	guessedLetters: GuessedLetter[],
 	hint: string,
+	usedLetters: Letter[],
 }
 
 type GuessedLetter = {
@@ -37,6 +38,7 @@ class GameDocument {
 	private guessedLetters: GuessedLetter[] = []
 	private gameState: GameState = 'playing'
 	private listeners: DocumentListener[] = []
+	private usedLetters: Letter[] = []
 
 	private readonly russianAlphabet: Letter[] = [
 		'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М',
@@ -54,6 +56,7 @@ class GameDocument {
 		this.mistakesCount = 0
 		this.guessedLetters = []
 		this.gameState = 'playing'
+		this.usedLetters = []
 		this.notifyListeners()
 	}
 
@@ -80,6 +83,11 @@ class GameDocument {
 			throw new Error(`Letter ${letter} was already used`)
 		}
 
+		const upperLetter = letter.toUpperCase()
+		if (this.usedLetters.includes(upperLetter)) {
+			throw new Error(`Letter ${letter} was already used`)
+		}
+
 		const isCorrect = this.currentWord.answer.toLowerCase().includes(normalizedLetter)
 
 		if (isCorrect) {
@@ -97,6 +105,7 @@ class GameDocument {
 			this.mistakesCount++
 		}
 
+		this.usedLetters.push(upperLetter)
 		this.updateGameState()
 		this.notifyListeners()
 	}
@@ -134,6 +143,7 @@ class GameDocument {
 			wordLength: this.currentWord.answer.length,
 			guessedLetters: this.guessedLetters,
 			hint: this.currentWord.hint,
+			usedLetters: this.usedLetters,
 		}
 
 		this.listeners.forEach(listener => listener(state))
