@@ -9,8 +9,8 @@ class App {
 	constructor() {
 		this.canvas = document.createElement('canvas')
 		document.body.appendChild(this.canvas)
-		this.canvas.width = window.innerWidth
-		this.canvas.height = window.innerHeight
+		this.canvas.width = 400
+		this.canvas.height = 400
 		const ctx = this.canvas.getContext('2d')
 
 		if (!ctx) {
@@ -19,22 +19,10 @@ class App {
 		this.ctx = ctx
 
 		const gameDocument = new GameDocument()
-		this.game = new Game(gameDocument)
-
-		this.setupEventListeners()
+		this.game = new Game(gameDocument, ctx)
 	}
 
 	run = () => {
-		this.render()
-	}
-
-	private setupEventListeners() {
-		window.addEventListener('resize', this.resizeCanvas)
-	}
-
-	private resizeCanvas = () => {
-		this.canvas.width = window.innerWidth
-		this.canvas.height = window.innerHeight
 		this.render()
 	}
 
@@ -48,5 +36,4 @@ class App {
 const app = new App()
 app.run()
 
-export {
-}
+export {}

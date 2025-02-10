@@ -11,10 +11,11 @@ class Game implements Renderer {
 
 	constructor(
 		private readonly gameDocument: GameDocument,
+		ctx: CanvasRenderingContext2D,
 	) {
-		this.gallows = new Gallows()
+		this.gallows = new Gallows(ctx, gameDocument)
 		this.letters = new Letters()
-		this.lettersInputField = new LettersInputField()
+		this.lettersInputField = new LettersInputField(gameDocument)
 
 		this.gameDocument.registerListener(state => this.gallows.notify(state))
 		this.gameDocument.registerListener(state => this.letters.notify(state))
