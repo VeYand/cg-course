@@ -18,6 +18,15 @@ class GameMenu implements Renderer, Notifiable {
 		this.gameDocument.registerListener(this.notify.bind(this))
 	}
 
+	show(): void {
+		this.container.style.display = 'flex'
+		this.render()
+	}
+
+	hide(): void {
+		this.container.style.display = 'none'
+	}
+
 	render(): void {
 	}
 

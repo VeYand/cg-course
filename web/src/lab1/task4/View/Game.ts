@@ -36,10 +36,12 @@ class Game implements Renderer {
 	render(): void {
 		this.toggle.render()
 		if (this.designMode === 'menu') {
-			this.menu.render()
+			this.menu.show()
+			this.gallows.hide()
 		}
 		if (this.designMode === 'gallows') {
-			this.gallows.render()
+			this.menu.hide()
+			this.gallows.show()
 		}
 		this.letters.render()
 		this.lettersInputField.render()
@@ -47,6 +49,7 @@ class Game implements Renderer {
 
 	onDesignChange(mode: DesignMode) {
 		this.designMode = mode
+		this.render()
 	}
 }
 export {

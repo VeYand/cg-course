@@ -14,6 +14,16 @@ class Gallows implements Renderer, Notifiable {
 		document.body.appendChild(this.canvas)
 	}
 
+	show(): void {
+		this.canvas.style.display = 'block'
+		this.render()
+	}
+
+	hide(): void {
+		this.canvas.style.display = 'none'
+	}
+
+
 	render(): void {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 		this.ctx.strokeStyle = '#000'
