@@ -1,10 +1,10 @@
 import {Color, Position} from './types'
 
 class Drawer {
-	private readonly ctx: CanvasRenderingContext2D
+	private readonly context: CanvasRenderingContext2D
 
-	constructor(ctx: CanvasRenderingContext2D) {
-		this.ctx = ctx
+	constructor(context: CanvasRenderingContext2D) {
+		this.context = context
 	}
 
 	drawLine(start: Position, end: Position, color: Color): void {
@@ -22,23 +22,15 @@ class Drawer {
 	drawCircle(center: Position, radius: number, color: Color): void {
 		let x = 0
 		let y = radius
-		let d = 3 - 2 * radius
+		let decisionParam = 3 - 2 * radius
 
 		while (x <= y) {
-			this.setPixel(center.x + x, center.y + y, color)
-			this.setPixel(center.x - x, center.y + y, color)
-			this.setPixel(center.x + x, center.y - y, color)
-			this.setPixel(center.x - x, center.y - y, color)
-			this.setPixel(center.x + y, center.y + x, color)
-			this.setPixel(center.x - y, center.y + x, color)
-			this.setPixel(center.x + y, center.y - x, color)
-			this.setPixel(center.x - y, center.y - x, color)
-
-			if (d < 0) {
-				d += 4 * x + 6
+			this.plotCirclePixels(center, x, y, color)
+			if (decisionParam < 0) {
+				decisionParam += 4 * x + 6
 			}
 			else {
-				d += 4 * (x - y) + 10
+				decisionParam += 4 * (x - y) + 10
 				y--
 			}
 			x++
@@ -97,9 +89,26 @@ class Drawer {
 		}
 	}
 
+	private plotCirclePixels(center: Position, offsetX: number, offsetY: number, color: Color): void {
+		const points = [
+			{x: center.x + offsetX, y: center.y + offsetY},
+			{x: center.x - offsetX, y: center.y + offsetY},
+			{x: center.x + offsetX, y: center.y - offsetY},
+			{x: center.x - offsetX, y: center.y - offsetY},
+			{x: center.x + offsetY, y: center.y + offsetX},
+			{x: center.x - offsetY, y: center.y + offsetX},
+			{x: center.x + offsetY, y: center.y - offsetX},
+			{x: center.x - offsetY, y: center.y - offsetX},
+		]
+		points.forEach(point => this.setPixel(point.x, point.y, color))
+	}
+
 	private setPixel(x: number, y: number, color: Color): void {
-		this.ctx.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`
-		this.ctx.fillRect(x, y, 1, 1)
+		if (x < 0 || x >= this.context.canvas.width || y < 0 || y >= this.context.canvas.height) {
+			return
+		}
+		this.context.fillStyle = `rgb(${color.r * 255}, ${color.g * 255}, ${color.b * 255})`
+		this.context.fillRect(x, y, 1, 1)
 	}
 }
 
