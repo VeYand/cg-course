@@ -132,8 +132,9 @@ class GameDocument {
 	}
 
 	private checkWinCondition(): boolean {
-		const uniqueLetters = new Set(this.currentWord.answer.toLowerCase())
-		return this.guessedLetters.length >= uniqueLetters.size
+		const uniqueAnswerLetters = new Set(this.currentWord.answer.toLowerCase().split(''))
+		const guessedUniqueLetters = new Set(this.guessedLetters.map(gl => gl.char.toLowerCase()))
+		return Array.from(uniqueAnswerLetters).every(letter => guessedUniqueLetters.has(letter))
 	}
 
 	private notifyListeners(): void {
