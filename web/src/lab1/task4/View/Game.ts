@@ -1,21 +1,21 @@
 import {GameDocument} from '../Document/GameDocument'
 import {Gallows} from './Gallows'
-import {Letters} from './Letters'
-import {LettersInputField} from './LettersInputField'
+import {GuessedLetters} from './GuessedLetters'
+import {LettersInput} from './LettersInput'
 import {Renderer} from './Renderer'
 
 class Game implements Renderer {
 	private readonly gallows: Gallows
-	private readonly letters: Letters
-	private readonly lettersInputField: LettersInputField
+	private readonly letters: GuessedLetters
+	private readonly lettersInputField: LettersInput
 
 	constructor(
 		private readonly gameDocument: GameDocument,
 		ctx: CanvasRenderingContext2D,
 	) {
 		this.gallows = new Gallows(ctx, gameDocument)
-		this.letters = new Letters()
-		this.lettersInputField = new LettersInputField(gameDocument)
+		this.letters = new GuessedLetters()
+		this.lettersInputField = new LettersInput(gameDocument)
 
 		this.gameDocument.registerListener(state => this.gallows.notify(state))
 		this.gameDocument.registerListener(state => this.letters.notify(state))

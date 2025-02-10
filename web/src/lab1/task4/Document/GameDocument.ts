@@ -1,104 +1,142 @@
 import config from './gameConfig.json'
 
-type Word = {
-	hint: string,
-	answer: string,
-}
+type Letter = string
+type WordIndex = number
+
+type GameState = 'playing' | 'over' | 'win'
 
 type GameConfig = {
 	words: Word[],
 }
 
-type GameState = 'playing' | 'over'
+type Word = {
+	hint: string,
+	answer: string,
+}
 
 type DocumentState = {
 	mistakes: number,
-	state: GameState,
+	gameState: GameState,
 	wordLength: number,
-	answer: {char: string, wordIndex: number}[],
+	guessedLetters: GuessedLetter[],
 	hint: string,
+}
+
+type GuessedLetter = {
+	char: Letter,
+	wordIndex: WordIndex,
 }
 
 type DocumentListener = (state: DocumentState) => void
 
 class GameDocument {
 	private readonly config: GameConfig
-	private currentWord: Word = {hint: '', answer: ''}
-	private currentMistakes = 0
-	private readonly MAX_MISTAKES = 7
-	private currentAnswer: {char: string, wordIndex: number}[] = []
-	private state: GameState = 'playing'
+	private currentWord: Word
+	private mistakesCount = 0
+	private readonly maxMistakes = 7
+	private guessedLetters: GuessedLetter[] = []
+	private gameState: GameState = 'playing'
 	private listeners: DocumentListener[] = []
+
+	private readonly russianAlphabet: Letter[] = [
+		'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М',
+		'Н', 'О', 'П', 'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ',
+		'Ы', 'Ь', 'Э', 'Ю', 'Я',
+	]
 
 	constructor() {
 		this.config = config as GameConfig
-		this.newGame()
+		this.currentWord = this.getRandomWord()
 	}
 
-	newGame() {
-		const wordIndex = Math.floor(Math.random() * this.config.words.length)
-		const newWord = this.config.words[wordIndex]
-		if (newWord) {
-			this.currentWord = newWord
-		}
-		this.currentMistakes = 0
-		this.currentAnswer = []
-		this.state = 'playing'
+	newGame(): void {
+		this.currentWord = this.getRandomWord()
+		this.mistakesCount = 0
+		this.guessedLetters = []
+		this.gameState = 'playing'
 		this.notifyListeners()
 	}
 
-	getAllowedLetters(): string[] {
-		return [
-			'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ё', 'Ж', 'З', 'И', 'Й', 'К', 'Л', 'М', 'Н', 'О', 'П',
-			'Р', 'С', 'Т', 'У', 'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Ъ', 'Ы', 'Ь', 'Э', 'Ю', 'Я',
-		]
+	getAllowedLetters(): Letter[] {
+		return [...this.russianAlphabet]
 	}
 
 	registerListener(listener: DocumentListener): void {
 		this.listeners.push(listener)
 	}
 
-	guess(char: string): void {
-		if (!this.getAllowedLetters().includes(char)) {
-			throw new Error('Char is not allowed')
-		}
-
-		if (this.currentMistakes >= this.MAX_MISTAKES) {
-			throw new Error('Game over')
-		}
-
-		if (this.currentAnswer.map(a => a.char.toLowerCase()).includes(char.toLowerCase())) {
-			throw new Error('Already used')
-		}
-
-		const includes = this.currentWord.answer.toLowerCase().includes(char.toLowerCase())
-		if (!includes) {
-			this.currentMistakes++
-			this.state = this.currentMistakes >= this.MAX_MISTAKES ? 'over' : 'playing'
-			this.notifyListeners()
+	guess(letter: Letter): void {
+		if (this.gameState !== 'playing') {
 			return
 		}
 
-		const indexes: number[] = []
-		for (let i = 0; i < this.currentWord.answer.length; i++) {
-			if (this.currentWord.answer[i]?.toLowerCase() === char.toLowerCase()) {
-				indexes.push(i)
-			}
+		const normalizedLetter = letter.toLowerCase()
+
+		if (!this.getAllowedLetters().some(l => l.toLowerCase() === normalizedLetter)) {
+			throw new Error(`Letter ${letter} is not allowed`)
 		}
-		this.currentAnswer = [...this.currentAnswer, ...indexes.map(i => ({char: char, wordIndex: i}))]
+
+		if (this.guessedLetters.some(l => l.char.toLowerCase() === normalizedLetter)) {
+			throw new Error(`Letter ${letter} was already used`)
+		}
+
+		const isCorrect = this.currentWord.answer.toLowerCase().includes(normalizedLetter)
+
+		if (isCorrect) {
+			const indexes = [...this.currentWord.answer]
+				.map((char, index) => ({char: char.toLowerCase(), index}))
+				.filter(({char}) => char === normalizedLetter)
+				.map(({index}) => index)
+
+			this.guessedLetters.push(...indexes.map(index => ({
+				char: letter.toUpperCase(),
+				wordIndex: index,
+			})))
+		}
+		else {
+			this.mistakesCount++
+		}
+
+		this.updateGameState()
 		this.notifyListeners()
 	}
 
-	private notifyListeners(): void {
-		for (const listener of this.listeners) {
-			listener({
-				mistakes: this.currentMistakes,
-				state: this.state,
-				answer: this.currentAnswer,
-				hint: this.currentWord.hint,
-				wordLength: this.currentWord.answer.length,
-			})
+	private getRandomWord(): Word {
+		if (this.config.words.length === 0) {
+			throw new Error('No words available in configuration')
 		}
+		const randomIndex = Math.floor(Math.random() * this.config.words.length)
+		const word = this.config.words[randomIndex]
+		if (!word) {
+			throw new Error('No words available in configuration')
+		}
+		return word
+	}
+
+	private updateGameState(): void {
+		if (this.checkWinCondition()) {
+			this.gameState = 'win'
+		}
+		else if (this.mistakesCount >= this.maxMistakes) {
+			this.gameState = 'over'
+		}
+	}
+
+	private checkWinCondition(): boolean {
+		const uniqueLetters = new Set(this.currentWord.answer.toLowerCase())
+		return this.guessedLetters.length >= uniqueLetters.size
+	}
+
+	private notifyListeners(): void {
+		const state: DocumentState = {
+			mistakes: this.mistakesCount,
+			gameState: this.gameState,
+			wordLength: this.currentWord.answer.length,
+			guessedLetters: this.guessedLetters,
+			hint: this.currentWord.hint,
+		}
+
+		this.listeners.forEach(listener => listener(state))
 	}
 }
 
@@ -108,4 +146,5 @@ export {
 
 export type {
 	DocumentState,
+	GuessedLetter,
 }

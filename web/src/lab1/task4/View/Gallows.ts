@@ -3,7 +3,7 @@ import {Notifiable} from './Notifiable'
 import {Renderer} from './Renderer'
 
 class Gallows implements Renderer, Notifiable {
-	private state: DocumentState | null = null
+	private state: DocumentState | undefined
 	private readonly canvas: HTMLCanvasElement
 
 	constructor(
@@ -15,10 +15,6 @@ class Gallows implements Renderer, Notifiable {
 	}
 
 	render(): void {
-		if (!this.state) {
-			return
-		}
-
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 		this.ctx.strokeStyle = '#000'
 		this.ctx.lineWidth = 2
@@ -36,6 +32,10 @@ class Gallows implements Renderer, Notifiable {
 		this.ctx.lineTo(250, 50)
 		this.ctx.lineTo(250, 100)
 		this.ctx.stroke()
+
+		if (!this.state) {
+			return
+		}
 
 		if (this.state.mistakes > 0) {
 			this.drawHead()
@@ -64,7 +64,10 @@ class Gallows implements Renderer, Notifiable {
 		this.state = gameState
 		this.render()
 
-		if (gameState.state === 'over') {
+		if (gameState.gameState === 'win') {
+			this.showWin()
+		}
+		if (gameState.gameState === 'over') {
 			this.showGameOver()
 		}
 	}
@@ -121,13 +124,14 @@ class Gallows implements Renderer, Notifiable {
 		this.ctx.stroke()
 	}
 
-	private showGameOver() {
-		const isWin = this.state?.answer.length === this.state?.wordLength
-		const message = isWin ? 'Победа! Начать заново?' : 'Поражение! Попробовать еще раз?'
+	private showWin() {
+		alert('Победа! Начать заново?')
+		this.gameDocument.newGame()
+	}
 
-		if (confirm(message)) {
-			this.gameDocument.newGame()
-		}
+	private showGameOver() {
+		alert('Поражение! Попробовать еще раз?')
+		this.gameDocument.newGame()
 	}
 }
 

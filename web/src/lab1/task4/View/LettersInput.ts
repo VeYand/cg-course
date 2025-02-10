@@ -2,8 +2,8 @@ import {GameDocument, DocumentState} from '../Document/GameDocument'
 import {Notifiable} from './Notifiable'
 import {Renderer} from './Renderer'
 
-class LettersInputField implements Renderer, Notifiable {
-	private state: DocumentState | null = null
+class LettersInput implements Renderer, Notifiable {
+	private state: DocumentState | undefined
 	private readonly container: HTMLDivElement
 	private buttons: HTMLButtonElement[] = []
 	private usedLetters = new Set<string>()
@@ -31,7 +31,8 @@ class LettersInputField implements Renderer, Notifiable {
 
 	notify(gameState: DocumentState): void {
 		this.state = gameState
-		if (gameState.state === 'over') {
+
+		if (gameState.gameState === 'over') {
 			this.buttons.forEach(button => {
 				button.disabled = true
 			})
@@ -71,10 +72,12 @@ class LettersInputField implements Renderer, Notifiable {
 			return
 		}
 
-		const isCorrect = this.state?.answer.some(a => a.char === char)
+		const isCorrect = this.state?.guessedLetters.some(a => a.char === char)
 		button.style.backgroundColor = isCorrect ? '#90EE90' : '#FF7F7F'
 		button.disabled = true
 	}
 }
 
-export {LettersInputField}
+export {
+	LettersInput,
+}

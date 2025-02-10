@@ -2,8 +2,8 @@ import {DocumentState} from '../Document/GameDocument'
 import {Notifiable} from './Notifiable'
 import {Renderer} from './Renderer'
 
-class Letters implements Renderer, Notifiable {
-	private state: DocumentState | null = null
+class GuessedLetters implements Renderer, Notifiable {
+	private state: DocumentState | undefined
 	private readonly container: HTMLDivElement
 
 	constructor() {
@@ -23,7 +23,7 @@ class Letters implements Renderer, Notifiable {
 		this.container.innerHTML = ''
 		const wordArray = Array(this.state.wordLength).fill('')
 
-		for (const answer of this.state.answer) {
+		for (const answer of this.state.guessedLetters) {
 			wordArray[answer.wordIndex] = answer.char
 		}
 
@@ -52,5 +52,5 @@ class Letters implements Renderer, Notifiable {
 }
 
 export {
-	Letters,
+	GuessedLetters,
 }
