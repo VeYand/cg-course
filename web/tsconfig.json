@@ -64,6 +64,7 @@
     "transpileOnly": true,
     "files": true,
     "compilerOptions": {
+      "resolveJsonModule": true,
       "module": "CommonJS"
     }
   }
