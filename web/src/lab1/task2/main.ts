@@ -6,10 +6,9 @@ class App {
 	private readonly canvas: HTMLCanvasElement
 	private readonly ctx: CanvasRenderingContext2D
 	private wires: Wires
-	private trolleybus: Trolleybus
-	private isDragging = false
-	private offsetX = 0
-	private offsetY = 0
+	private firstTrolleybus: Trolleybus
+	private secondTrolleybus: Trolleybus
+
 
 	private readonly WIRE_HEIGHT = 5
 	private readonly TROLLEYBUS_SIZE: Size = {width: 100, height: 50}
@@ -39,12 +38,22 @@ class App {
 			this.WIRE_COLOR,
 		)
 
-		this.trolleybus = new Trolleybus(
+		this.firstTrolleybus = new Trolleybus(
 			{x: centerX, y: centerY},
 			this.wires.getPosition().y,
 			this.wires.getPosition().y + this.wires.getSize().height,
 			this.TROLLEYBUS_SIZE,
 			this.TROLLEYBUS_COLOR,
+			this.canvas,
+		)
+
+		this.secondTrolleybus = new Trolleybus(
+			{x: centerX + 100, y: centerY + 100},
+			this.wires.getPosition().y,
+			this.wires.getPosition().y + this.wires.getSize().height,
+			this.TROLLEYBUS_SIZE,
+			{r: 0, g: 0, b: 1},
+			this.canvas,
 		)
 
 		this.setupEventListeners()
@@ -55,42 +64,7 @@ class App {
 	}
 
 	private setupEventListeners() {
-		this.canvas.addEventListener('mousedown', this.handleMouseDown)
-		this.canvas.addEventListener('mousemove', this.handleMouseMove)
-		this.canvas.addEventListener('mouseup', this.handleMouseUp)
 		window.addEventListener('resize', this.resizeCanvas)
-	}
-
-	private handleMouseDown = (event: MouseEvent) => {
-		const mouseX = event.clientX
-		const mouseY = event.clientY
-
-		if (
-			mouseX >= this.trolleybus.getPosition().x
-			&& mouseX <= this.trolleybus.getPosition().x + this.trolleybus.getSize().width
-			&& mouseY >= this.trolleybus.getPosition().y
-			&& mouseY <= this.trolleybus.getPosition().y + this.trolleybus.getSize().height
-		) {
-			this.isDragging = true
-			this.offsetX = mouseX - this.trolleybus.getPosition().x
-			this.offsetY = mouseY - this.trolleybus.getPosition().y
-		}
-	}
-
-	private handleMouseMove = (event: MouseEvent) => {
-		if (this.isDragging) {
-			const mouseX = event.clientX
-			const mouseY = event.clientY
-
-			const newX = mouseX - this.offsetX
-			const newY = mouseY - this.offsetY
-
-			this.trolleybus.setPosition({x: newX, y: newY})
-		}
-	}
-
-	private handleMouseUp = () => {
-		this.isDragging = false
 	}
 
 	private resizeCanvas = () => {
@@ -99,11 +73,12 @@ class App {
 		this.render()
 	}
 
-	private render = () => {
+	private render = () => { // TODO показать 2 троллейбуса
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
 		this.wires.draw(this.ctx)
-		this.trolleybus.draw(this.ctx)
+		this.firstTrolleybus.draw(this.ctx)
+		this.secondTrolleybus.draw(this.ctx)
 
 		requestAnimationFrame(this.render)
 	}

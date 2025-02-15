@@ -20,14 +20,20 @@ class Trolleybus {
 	private readonly PANTOGRAPH_HEAD_X_OFFSET = 5
 	private readonly PANTOGRAPH_HEAD_Y_OFFSET = 2.5
 
+	private isDragging = false
+	private offsetX = 0
+	private offsetY = 0
+
 	constructor(
 		private trolleybusPosition: Position,
 		private firstWireY: number,
 		private secondWireY: number,
 		private trolleybusSize: Size,
 		private color: Color,
+		private readonly canvas: HTMLCanvasElement,
 	) {
-	}
+		this.setupEventListeners()
+	} // todo использовать для рисования траснформации вместо смещения
 
 	draw(ctx: CanvasRenderingContext2D) {
 		ctx.fillStyle = `rgb(${this.color.r * 255}, ${this.color.g * 255}, ${this.color.b * 255})`
@@ -80,6 +86,13 @@ class Trolleybus {
 		return this.trolleybusSize
 	}
 
+
+	private setupEventListeners() {
+		this.canvas.addEventListener('mousedown', this.handleMouseDown)
+		this.canvas.addEventListener('mousemove', this.handleMouseMove)
+		this.canvas.addEventListener('mouseup', this.handleMouseUp)
+	}
+
 	private drawWindow(ctx: CanvasRenderingContext2D, x: number, y: number) {
 		ctx.fillStyle = this.WINDOW_COLOR
 		ctx.fillRect(x, y, this.WINDOW_WIDTH, this.WINDOW_HEIGHT)
@@ -128,6 +141,38 @@ class Trolleybus {
 			this.PANTOGRAPH_HEAD_WIDTH,
 			this.PANTOGRAPH_HEAD_HEIGHT,
 		)
+	}
+
+	private handleMouseDown = (event: MouseEvent) => { // todo сделать два троллебуйса
+		const mouseX = event.clientX
+		const mouseY = event.clientY
+
+		if (
+			mouseX >= this.getPosition().x
+			&& mouseX <= this.getPosition().x + this.getSize().width
+			&& mouseY >= this.getPosition().y
+			&& mouseY <= this.getPosition().y + this.getSize().height
+		) {
+			this.isDragging = true
+			this.offsetX = mouseX - this.getPosition().x
+			this.offsetY = mouseY - this.getPosition().y
+		}
+	}
+
+	private handleMouseMove = (event: MouseEvent) => {
+		if (this.isDragging) {
+			const mouseX = event.clientX
+			const mouseY = event.clientY
+
+			const newX = mouseX - this.offsetX
+			const newY = mouseY - this.offsetY
+
+			this.setPosition({x: newX, y: newY})
+		}
+	}
+
+	private handleMouseUp = () => {
+		this.isDragging = false
 	}
 }
 

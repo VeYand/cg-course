@@ -6,7 +6,7 @@ type LetterData = {
 	phase: number,
 }
 
-class App {
+class App { // TODO добавить скругление для B
 	private readonly canvas: HTMLCanvasElement
 	private readonly ctx: CanvasRenderingContext2D
 	private readonly amplitude = 50
@@ -62,7 +62,8 @@ class App {
 		const time = Date.now()
 
 		this.letters.forEach((letterData, index) => {
-			const {letter, phase} = letterData
+			const {letter, phase} = letterData // todo сделать, чтобы буквы прыгали
+
 			const offsetY = this.amplitude * Math.sin((2 * Math.PI * time) / this.period + phase)
 			letter.setPosition({
 				x: centerX + (index - 1) * this.letterSpacing,

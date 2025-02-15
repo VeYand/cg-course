@@ -22,25 +22,25 @@ class LettersInput implements Renderer, Notifiable {
 
 	render(): void {
 		this.buttons.forEach(button => {
-			button.disabled = false
-			button.style.backgroundColor = ''
-		})
-	}
-
-	notify(gameState: DocumentState): void {
-		this.state = gameState
-		this.buttons.forEach(button => {
+			if (!this.state) {
+				return
+			}
 			const letter = button.textContent || ''
-			const isUsed = gameState.usedLetters.includes(letter)
-			const isCorrect = gameState.guessedLetters.some(g => g.char === letter)
+			const isUsed = this.state.usedLetters.includes(letter)
+			const isCorrect = this.state.guessedLetters.some(g => g.char === letter)
 
-			button.disabled = isUsed || gameState.gameState !== 'playing'
+			button.disabled = isUsed || this.state.gameState !== 'playing'
 			button.style.backgroundColor = isCorrect
 				? '#90EE90'
 				: isUsed
 					? '#FF7F7F'
 					: ''
 		})
+	}
+
+	notify(gameState: DocumentState): void {
+		this.state = gameState
+		this.render()
 	}
 
 	private createButtons() {

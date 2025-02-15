@@ -52,6 +52,10 @@ class App {
 		this.drawer.drawCircle({x: 60, y: 130}, 15, {r: 0.5, g: 0, b: 0.7})
 		this.drawer.drawCircle({x: 140, y: 130}, 15, {r: 0.5, g: 0, b: 0.7})
 
+
+		this.drawer.drawCircle({x: 10, y: 10}, 4, {r: 0, g: 0, b: 0}) // todo поправить уголки
+
+
 		requestAnimationFrame(this.render)
 	}
 }
