@@ -1,9 +1,11 @@
 import {ImageData} from '../Document/ImageData'
 import {ImageViewerDocument} from '../Document/ImageViewerDocument'
+import {ImageViewerHelpView} from './ImageViewerHelpView'
 
 class ImageViewerMenuView {
 	constructor(
 		private readonly document: ImageViewerDocument,
+		private readonly helpView: ImageViewerHelpView,
 	) {
 		this.createUI()
 	}
@@ -29,7 +31,7 @@ class ImageViewerMenuView {
 
 		const helpBtn = document.createElement('button')
 		helpBtn.textContent = 'Help'
-		helpBtn.onclick = () => this.handleOpen()
+		helpBtn.onclick = () => this.helpView.toggle()
 		menuBar.append(helpBtn)
 
 		document.body.append(menuBar)

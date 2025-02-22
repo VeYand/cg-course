@@ -7,8 +7,8 @@ class ImageViewerAppView {
 	constructor(
 		readonly appDocument: ImageViewerDocument,
 	) {
-		new ImageViewerMenuView(appDocument)
-		new ImageViewerHelpView()
+		const helpView = new ImageViewerHelpView()
+		new ImageViewerMenuView(appDocument, helpView)
 		new ImageViewerImageView(appDocument)
 	}
 }
