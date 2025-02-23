@@ -13,8 +13,8 @@ class ImageData {
 		return this.bitmap.height
 	}
 
-	draw(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
-		context.drawImage(this.bitmap, x, y, width, height)
+	getBitmap() {
+		return this.bitmap
 	}
 }
 

@@ -58,7 +58,7 @@ class ImageViewerImageView implements IDocumentListener {
 			const x = (width - w) / 2
 			const y = (height - h) / 2
 
-			this.currentImage.draw(this.ctx, x, y, w, h)
+			this.ctx.drawImage(this.currentImage.getBitmap(), x, y, w, h)
 		}
 	}
 
