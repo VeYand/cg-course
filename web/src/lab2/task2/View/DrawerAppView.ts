@@ -15,7 +15,6 @@ class DrawerAppView {
 	}
 
 	private onBrashColorChange(color: string) {
-		console.log({color})
 		this.canvasView.setBrashColor(color)
 	}
 }
