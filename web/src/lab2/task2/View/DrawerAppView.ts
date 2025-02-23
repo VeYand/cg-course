@@ -8,8 +8,8 @@ class DrawerAppView {
 		readonly appDocument: DrawerDocument,
 	) {
 		const helpView = new DrawerHelpView()
-		new DrawerCanvasView(appDocument)
-		new DrawerMenuView(appDocument, helpView)
+		const canvasView = new DrawerCanvasView(appDocument)
+		new DrawerMenuView(appDocument, helpView, canvasView)
 	}
 }
 

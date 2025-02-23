@@ -1,16 +1,16 @@
 import {saveAs} from 'file-saver'
 import {DrawerDocument} from '../Document/DrawerDocument'
+import {DrawerCanvasView} from './DrawerCanvasView'
 import {DrawerHelpView} from './DrawerHelpView'
 
 class DrawerMenuView {
-	private readonly menuBar: HTMLDivElement
-
 	constructor(
 		private readonly appDocument: DrawerDocument,
 		private readonly helpView: DrawerHelpView,
+		private readonly canvasView: DrawerCanvasView,
 	) {
-		this.menuBar = this.createMenuBar()
-		document.body.append(this.menuBar)
+		const menuBar = this.createMenuBar()
+		document.body.append(menuBar)
 	}
 
 	private createMenuBar(): HTMLDivElement {
@@ -83,7 +83,7 @@ class DrawerMenuView {
 	}
 
 	private handleNew(): void {
-		this.appDocument.clearCanvas()
+		this.appDocument.clear()
 	}
 
 	private handleOpen(): void {
@@ -106,28 +106,19 @@ class DrawerMenuView {
 		input.click()
 	}
 
-	private handleSavePng(): void {
-		this.appDocument.getCanvas().toBlob(blob => {
-			if (blob) {
-				saveAs(blob, 'image.png')
-			}
-		}, 'image/png')
+	private handleSavePng() {
+		const canvas = this.canvasView.getCanvas()
+		canvas.toBlob(blob => blob && saveAs(blob, 'image.png'), 'image/png')
 	}
 
-	private handleSaveBmp(): void {
-		this.appDocument.getCanvas().toBlob(blob => {
-			if (blob) {
-				saveAs(blob, 'image.bmp')
-			}
-		}, 'image/png')
+	private handleSaveBmp() {
+		const canvas = this.canvasView.getCanvas()
+		canvas.toBlob(blob => blob && saveAs(blob, 'image.bmp'), 'image/png')
 	}
 
-	private handleSaveJpeg(): void {
-		this.appDocument.getCanvas().toBlob(blob => {
-			if (blob) {
-				saveAs(blob, 'image.jpg')
-			}
-		}, 'image/jpeg')
+	private handleSaveJpeg() {
+		const canvas = this.canvasView.getCanvas()
+		canvas.toBlob(blob => blob && saveAs(blob, 'image.jpg'), 'image/jpeg')
 	}
 }
 

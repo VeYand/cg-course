@@ -1,7 +1,5 @@
 type IDocumentListener = {
-	notify: (changedCanvas?: HTMLCanvasElement) => void,
+	notify: () => void,
 }
 
-export type {
-	IDocumentListener,
-}
+export type {IDocumentListener}

@@ -1,69 +1,54 @@
 import {IDocumentListener} from './IDocumentListener'
 
 class DrawerDocument {
-	private readonly canvas: HTMLCanvasElement
+	private readonly DEFAULT_WIDTH = 1920
+	private readonly DEFAULT_HEIGHT = 1024
+
+	private width = this.DEFAULT_WIDTH
+	private height = this.DEFAULT_HEIGHT
+	private imageBitmap: ImageBitmap | null = null
 	private listeners: IDocumentListener[] = []
 
-	constructor() {
-		this.canvas = document.createElement('canvas')
-		this.canvas.style.cssText = `
-            position: fixed;
-            top: 30px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        `
-		this.resizeCanvas()
-		document.body.append(this.canvas)
-		window.addEventListener('resize', () => this.resizeCanvas())
+	setSize(width: number, height: number) {
+		this.width = width
+		this.height = height
+		this.notifyListeners()
 	}
 
+	loadImage(imageBitmap: ImageBitmap) {
+		this.imageBitmap = imageBitmap
+		const scale = Math.min(
+			this.DEFAULT_WIDTH / this.imageBitmap.width,
+			this.DEFAULT_HEIGHT / this.imageBitmap.height,
+		)
+		const w = this.imageBitmap.width * scale
+		const h = this.imageBitmap.height * scale
+		this.setSize(w, h)
+	}
 
-	getCanvas(): HTMLCanvasElement {
-		return this.canvas
+	clear() {
+		this.imageBitmap = null
+		this.setSize(this.DEFAULT_WIDTH, this.DEFAULT_HEIGHT)
+	}
+
+	getWidth(): number {
+		return this.width
+	}
+
+	getHeight(): number {
+		return this.height
+	}
+
+	getImageBitmap(): ImageBitmap | null {
+		return this.imageBitmap
 	}
 
 	addListener(listener: IDocumentListener) {
 		this.listeners.push(listener)
 	}
 
-	loadImage(imageBitmap: ImageBitmap) {
-		const ctx = this.canvas.getContext('2d')
-		if (ctx) {
-			ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-
-			const width = window.innerWidth
-			const height = window.innerHeight - 30
-
-			const scale = Math.min(
-				width / imageBitmap.width,
-				height / imageBitmap.height,
-			)
-			const w = imageBitmap.width * scale
-			const h = imageBitmap.height * scale
-
-			ctx.canvas.width = w
-			ctx.canvas.height = h
-			ctx.drawImage(imageBitmap, 0, 0, w, h)
-		}
-		this.notifyListeners()
-	}
-
-	clearCanvas() {
-		const ctx = this.canvas.getContext('2d')
-		if (ctx) {
-			ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-		}
-		this.notifyListeners()
-	}
-
-	private resizeCanvas() {
-		this.canvas.width = window.innerWidth
-		this.canvas.height = window.innerHeight - 30
-	}
-
 	private notifyListeners() {
-		this.listeners.forEach(listener => listener.notify(this.canvas))
+		this.listeners.forEach(listener => listener.notify())
 	}
 }
 
