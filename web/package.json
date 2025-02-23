@@ -8,8 +8,10 @@
     "lint": "node eslint.mjs && tsc"
   },
   "dependencies": {
+    "file-saver": "^2.0.5"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20.11.26",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.48.1",
