@@ -1,5 +1,6 @@
 import {saveAs} from 'file-saver'
 import {DrawerDocument} from '../Document/DrawerDocument'
+import {ColorPicker} from './ColorPicker'
 import {DrawerCanvasView} from './DrawerCanvasView'
 import {DrawerHelpView} from './DrawerHelpView'
 
@@ -8,6 +9,7 @@ class DrawerMenuView {
 		private readonly appDocument: DrawerDocument,
 		private readonly helpView: DrawerHelpView,
 		private readonly canvasView: DrawerCanvasView,
+		private readonly onBrashColorChange: (color: string) => void,
 	) {
 		const menuBar = this.createMenuBar()
 		document.body.append(menuBar)
@@ -29,7 +31,8 @@ class DrawerMenuView {
 
 		menuBar.append(this.createFileMenu())
 		menuBar.append(this.createHelpButton())
-
+		const colorPicker = new ColorPicker(color => this.onBrashColorChange(color))
+		menuBar.append(colorPicker.getElement())
 		return menuBar
 	}
 

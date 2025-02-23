@@ -5,6 +5,7 @@ class DrawerCanvasView implements IDocumentListener {
 	private readonly canvas: HTMLCanvasElement
 	private readonly ctx: CanvasRenderingContext2D
 	private isDrawing = false
+	private brashColor = '#000000'
 
 	constructor(
 		private appDocument: DrawerDocument,
@@ -40,6 +41,10 @@ class DrawerCanvasView implements IDocumentListener {
 		return this.canvas
 	}
 
+	setBrashColor(color: string) {
+		this.brashColor = color
+	}
+
 	private initEventListeners() {
 		this.canvas.addEventListener('mousedown', e => this.startDrawing(e))
 		this.canvas.addEventListener('mousemove', e => this.draw(e))
@@ -72,7 +77,7 @@ class DrawerCanvasView implements IDocumentListener {
 			return
 		}
 		this.ctx.lineTo(event.clientX, event.clientY - 30)
-		this.ctx.strokeStyle = 'black'
+		this.ctx.strokeStyle = this.brashColor
 		this.ctx.lineWidth = 5
 		this.ctx.lineCap = 'round'
 		this.ctx.stroke()

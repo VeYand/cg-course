@@ -4,12 +4,19 @@ import {DrawerHelpView} from './DrawerHelpView'
 import {DrawerMenuView} from './DrawerMenuView'
 
 class DrawerAppView {
+	private canvasView: DrawerCanvasView
+
 	constructor(
 		readonly appDocument: DrawerDocument,
 	) {
 		const helpView = new DrawerHelpView()
-		const canvasView = new DrawerCanvasView(appDocument)
-		new DrawerMenuView(appDocument, helpView, canvasView)
+		this.canvasView = new DrawerCanvasView(appDocument)
+		new DrawerMenuView(appDocument, helpView, this.canvasView, color => this.onBrashColorChange(color))
+	}
+
+	private onBrashColorChange(color: string) {
+		console.log({color})
+		this.canvasView.setBrashColor(color)
 	}
 }
 
