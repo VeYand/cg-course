@@ -1,0 +1,120 @@
+[
+  {
+    "elements": [
+      "fire",
+      "water"
+    ],
+    "results": [
+      "steam"
+    ]
+  },
+  {
+    "elements": [
+      "water",
+      "light"
+    ],
+    "results": [
+      "rainbow"
+    ]
+  },
+  {
+    "elements": [
+      "fire",
+      "earth"
+    ],
+    "results": [
+      "volcano"
+    ]
+  },
+  {
+    "elements": [
+      "air",
+      "dust"
+    ],
+    "results": [
+      "tornado"
+    ]
+  },
+  {
+    "elements": [
+      "water",
+      "cold"
+    ],
+    "results": [
+      "ice"
+    ]
+  },
+  {
+    "elements": [
+      "steam",
+      "air"
+    ],
+    "results": [
+      "cloud"
+    ]
+  },
+  {
+    "elements": [
+      "energy",
+      "air"
+    ],
+    "results": [
+      "lightning",
+      "thunderstorm"
+    ]
+  },
+  {
+    "elements": [
+      "water",
+      "grass"
+    ],
+    "results": [
+      "dew"
+    ]
+  },
+  {
+    "elements": [
+      "steam",
+      "earth"
+    ],
+    "results": [
+      "geyser"
+    ]
+  },
+  {
+    "elements": [
+      "ice",
+      "air"
+    ],
+    "results": [
+      "frost"
+    ]
+  },
+  {
+    "elements": [
+      "ice",
+      "cloud"
+    ],
+    "results": [
+      "snow"
+    ]
+  },
+  {
+    "elements": [
+      "cloud",
+      "earth"
+    ],
+    "results": [
+      "fog"
+    ]
+  },
+  {
+    "elements": [
+      "fire",
+      "stone"
+    ],
+    "results": [
+      "lava"
+    ]
+  }
+]

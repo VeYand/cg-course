@@ -168,6 +168,7 @@
                 "allowParens": true
             }
         ],
+        "no-case-declarations": "off",
         "no-console": "off",
         "no-continue": "off",
         "no-div-regex": "error",
