@@ -2,6 +2,7 @@ type GameEvent =
 	| {type: 'NEW_ELEMENT_CREATED', data: NewElementCreatedPayload}
 	| {type: 'STUDIED_ELEMENT_CREATED', data: StudiedElementCreatedPayload}
 	| {type: 'INVALID_COMBINATION', data: InvalidCombinationPayload}
+	| {type: 'ALL_ELEMENTS_OPENED'}
 
 type NewElementCreatedPayload = {
 	newElementIds: string[],

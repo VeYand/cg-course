@@ -65,6 +65,12 @@ class GameDocument {
 			})
 		}
 
+		if (this.isAllElementsOpened()) {
+			this.notifyListeners({
+				type: 'ALL_ELEMENTS_OPENED',
+			})
+		}
+
 		return [...newNotStudiedElements, ...newStudiedElements]
 	}
 
@@ -88,6 +94,13 @@ class GameDocument {
 
 	addListener(listener: IDocumentListener) {
 		this.listeners.push(listener)
+	}
+
+	isAllElementsOpened(): boolean {
+		const allElementIds = elements.map(e => e.id)
+		const differenceA_B = allElementIds.filter(id => !this.studiedElements.has(id))
+		const differenceB_A = [...this.studiedElements].filter(id => !allElementIds.includes(id))
+		return [...differenceA_B, ...differenceB_A].length === 0
 	}
 
 	private notifyListeners(event: GameEvent) {

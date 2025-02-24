@@ -61,19 +61,14 @@
     "image": "/icons/lightning.png"
   },
   {
-    "id": "dew",
-    "name": "Роса",
-    "image": "/icons/dew.png"
-  },
-  {
     "id": "geyser",
     "name": "Гейзер",
     "image": "/icons/geyser.png"
   },
   {
-    "id": "frost",
-    "name": "Иней",
-    "image": "/icons/frost.png"
+    "id": "rain",
+    "name": "Дождь",
+    "image": "/icons/rain.png"
   },
   {
     "id": "snow",

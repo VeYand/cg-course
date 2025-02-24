@@ -41,6 +41,11 @@ class ToastView implements BaseView, IDocumentListener {
 				this.showMessage(`Недопустимая комбинация: ${attempted}`, 'error')
 				this.playSound('/sounds/error.mp3')
 				break
+
+			case 'ALL_ELEMENTS_OPENED':
+				this.showMessage(`Победа, открыты все элементы!`)
+				this.playSound('/sounds/win.mp3')
+				break
 		}
 	}
 

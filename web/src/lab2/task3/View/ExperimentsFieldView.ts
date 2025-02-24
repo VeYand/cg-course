@@ -61,6 +61,16 @@ class ExperimentsFieldView implements BaseView {
 	private onElementDropped(e: Event) {
 		const droppedEl = e.target as HTMLElement
 		const droppedRect = droppedEl.getBoundingClientRect()
+
+		const deleteZone = this.element.querySelector('.delete-zone') as HTMLElement
+		if (deleteZone) {
+			const deleteRect = deleteZone.getBoundingClientRect()
+			if (this.isIntersecting(droppedRect, deleteRect)) {
+				this.removeElement(droppedEl.id)
+				return
+			}
+		}
+
 		const grid = this.element.querySelector('.elements-grid')
 		if (!grid) {
 			return
@@ -68,6 +78,7 @@ class ExperimentsFieldView implements BaseView {
 		const draggableEls = grid.querySelectorAll('.draggable-element')
 		for (const otherEl of Array.from(draggableEls)) {
 			if (otherEl === droppedEl) {
+				console.log('wtf')
 				continue
 			}
 			const otherRect = otherEl.getBoundingClientRect()

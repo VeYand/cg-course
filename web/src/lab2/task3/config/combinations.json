@@ -10,15 +10,6 @@
   },
   {
     "elements": [
-      "water",
-      "light"
-    ],
-    "results": [
-      "rainbow"
-    ]
-  },
-  {
-    "elements": [
       "fire",
       "earth"
     ],
@@ -28,8 +19,18 @@
   },
   {
     "elements": [
+      "water",
+      "air"
+    ],
+    "results": [
+      "cloud",
+      "ice"
+    ]
+  },
+  {
+    "elements": [
       "air",
-      "dust"
+      "air"
     ],
     "results": [
       "tornado"
@@ -38,38 +39,28 @@
   {
     "elements": [
       "water",
-      "cold"
-    ],
-    "results": [
-      "ice"
-    ]
-  },
-  {
-    "elements": [
-      "steam",
-      "air"
-    ],
-    "results": [
       "cloud"
+    ],
+    "results": [
+      "rain"
     ]
   },
   {
     "elements": [
-      "energy",
-      "air"
+      "ice",
+      "rain"
     ],
     "results": [
-      "lightning",
-      "thunderstorm"
+      "snow"
     ]
   },
   {
     "elements": [
-      "water",
-      "grass"
+      "air",
+      "rain"
     ],
     "results": [
-      "dew"
+      "rainbow"
     ]
   },
   {
@@ -83,24 +74,6 @@
   },
   {
     "elements": [
-      "ice",
-      "air"
-    ],
-    "results": [
-      "frost"
-    ]
-  },
-  {
-    "elements": [
-      "ice",
-      "cloud"
-    ],
-    "results": [
-      "snow"
-    ]
-  },
-  {
-    "elements": [
       "cloud",
       "earth"
     ],
@@ -110,8 +83,18 @@
   },
   {
     "elements": [
+      "tornado",
+      "rain"
+    ],
+    "results": [
+      "lightning",
+      "thunderstorm"
+    ]
+  },
+  {
+    "elements": [
       "fire",
-      "stone"
+      "volcano"
     ],
     "results": [
       "lava"
