@@ -1,114 +1,52 @@
-import {WebGLContext} from './WebGLContext'
-
-
 class Parabola {
-	private readonly context: WebGLContext
+	private readonly gl: WebGLRenderingContext
+	private readonly program: WebGLProgram
 	private vertexBuffer: WebGLBuffer | null = null
-	private vertices: number[] = []
-	private readonly scaleLocation: WebGLUniformLocation | null = null
+	private vertexCount = 0
 
-	constructor(glContext: WebGLRenderingContext) {
-		const program = this.createProgram(glContext)
-		if (!program) {
-			throw new Error('Не удалось создать программу')
-		}
-
-		this.context = {glContext, program}
-		this.scaleLocation = glContext.getUniformLocation(program, 'u_scale')
-
+	constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
+		this.gl = gl
+		this.program = program
 		this.initVertexBuffer()
-		this.updateScale()
 	}
 
 	render() {
-		const gl = this.context.glContext
-		gl.clearColor(0.0, 0.0, 0.0, 1.0)
-		gl.clear(gl.COLOR_BUFFER_BIT)
+		const gl = this.gl
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
+		const positionLocation = gl.getAttribLocation(this.program, 'position')
+		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+		gl.enableVertexAttribArray(positionLocation)
 
-		gl.useProgram(this.context.program)
-		this.updateScale()
-		gl.drawArrays(gl.LINE_STRIP, 0, this.vertices.length / 2)
+		// Устанавливаем цвет графика – белый.
+		const colorLocation = gl.getUniformLocation(this.program, 'u_color')
+		gl.uniform4f(colorLocation, 1, 1, 1, 1)
+
+		gl.drawArrays(gl.LINE_STRIP, 0, this.vertexCount)
 	}
 
 	private initVertexBuffer() {
 		const vertices: number[] = []
-		const step = 0.001
-		const xMin = -2,
-			xMax = 3
+		const step = 0.01
+		const xMin = -2
+		const xMax = 3
 
 		for (let x = xMin; x <= xMax; x += step) {
 			const y = 2 * x * x - 3 * x - 8
 			vertices.push(x, y)
 		}
-		this.vertices = vertices
+		this.vertexCount = vertices.length / 2
 
-		const gl = this.context.glContext
+		const gl = this.gl
 		this.vertexBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW)
-
-		gl.useProgram(this.context.program)
-
-		const positionLocation = gl.getAttribLocation(this.context.program, 'position')
-		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
-		gl.enableVertexAttribArray(positionLocation)
-	}
-
-	private createProgram(gl: WebGLRenderingContext): WebGLProgram | undefined {
-		const vertexShader = gl.createShader(gl.VERTEX_SHADER)
-		if (!vertexShader) {
-			return undefined
-		}
-
-		gl.shaderSource(vertexShader, `
-			attribute vec2 position;
-			uniform vec2 u_scale;
-			void main() {
-				vec2 scaledPosition = position * u_scale;
-				gl_Position = vec4(scaledPosition, 0.0, 1.0);
-			}
-		`)
-		gl.compileShader(vertexShader)
-
-		const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
-		if (!fragmentShader) {
-			return undefined
-		}
-
-		gl.shaderSource(fragmentShader, `
-			void main() {
-				gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-			}
-		`)
-		gl.compileShader(fragmentShader)
-
-		const program = gl.createProgram()
-		if (!program) {
-			return undefined
-		}
-
-		gl.attachShader(program, vertexShader)
-		gl.attachShader(program, fragmentShader)
-		gl.linkProgram(program)
-
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			console.error('Ошибка связи программы:', gl.getProgramInfoLog(program))
-			return undefined
-		}
-
-		return program
-	}
-
-	private updateScale() {
-		const gl = this.context.glContext
-		const canvas = gl.canvas as HTMLCanvasElement
-		const aspectRatio = canvas.width / canvas.height
-
-		if (this.scaleLocation) {
-			gl.useProgram(this.context.program)
-			gl.uniform2f(this.scaleLocation, 1 / 3, aspectRatio / 8)
-		}
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array(vertices),
+			gl.STATIC_DRAW,
+		)
 	}
 }
 
-export {Parabola}
+export {
+	Parabola,
+}

@@ -1,23 +1,58 @@
+import {Axes} from './Axes'
 import './index.css'
 import {Parabola} from './Parabola'
+import {createShaderProgram, computeOrthoMatrix} from './WebGLUtils'
 
 class App {
 	private readonly canvas: HTMLCanvasElement
-	private readonly glContext: WebGLRenderingContext
-	private readonly parabola: Parabola
+	private readonly gl: WebGLRenderingContext
+	private readonly program: WebGLProgram
+	private parabola: Parabola
+	private axes: Axes
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
 		document.body.appendChild(this.canvas)
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight
-		const glContext = this.canvas.getContext('webgl')
-		if (!glContext) {
-			throw new Error('Webgl context not supported')
+
+		const gl = this.canvas.getContext('webgl')
+		if (!gl) {
+			throw new Error('WebGL не поддерживается')
 		}
-		this.glContext = glContext
-		this.parabola = new Parabola(glContext)
+		this.gl = gl
+
+		// Создаём и используем общий шейдерный программный объект.
+		this.program = createShaderProgram(gl)
+		gl.useProgram(this.program)
+
+		// Инициализируем объекты: график и оси.
+		this.parabola = new Parabola(gl, this.program)
+		this.axes = new Axes(gl, this.program)
+
 		this.setupEventListeners()
+	}
+
+
+	render = () => {
+		requestAnimationFrame(this.render)
+		const gl = this.gl
+
+		// Вычисляем матрицу проекции с сохранением пропорций.
+		const orthoMatrix = computeOrthoMatrix(
+			this.canvas.width,
+			this.canvas.height,
+		)
+		const matrixLocation = gl.getUniformLocation(this.program, 'u_matrix')
+		gl.useProgram(this.program)
+		gl.uniformMatrix4fv(matrixLocation, false, orthoMatrix)
+
+		gl.clearColor(0, 0, 0, 1)
+		gl.clear(gl.COLOR_BUFFER_BIT)
+
+		// Сначала рисуем оси, затем график параболы.
+		this.axes.render()
+		this.parabola.render()
 	}
 
 	run = () => {
@@ -31,18 +66,14 @@ class App {
 	private resizeCanvas = () => {
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight
-		this.glContext.viewport(0, 0, window.innerWidth, window.innerHeight)
+		this.gl.viewport(0, 0, window.innerWidth, window.innerHeight)
 		this.render()
 	}
-
-	private render = () => {
-		requestAnimationFrame(this.render)
-		this.parabola.render()
-	}
-
 }
 
 const app = new App()
 app.run()
 
-export {}
+
+export {
+}
