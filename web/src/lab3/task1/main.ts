@@ -22,11 +22,9 @@ class App {
 		}
 		this.gl = gl
 
-		// Создаём и используем общий шейдерный программный объект.
 		this.program = createShaderProgram(gl)
 		gl.useProgram(this.program)
 
-		// Инициализируем объекты: график и оси.
 		this.parabola = new Parabola(gl, this.program)
 		this.axes = new Axes(gl, this.program)
 
@@ -38,7 +36,6 @@ class App {
 		requestAnimationFrame(this.render)
 		const gl = this.gl
 
-		// Вычисляем матрицу проекции с сохранением пропорций.
 		const orthoMatrix = computeOrthoMatrix(
 			this.canvas.width,
 			this.canvas.height,
@@ -50,7 +47,6 @@ class App {
 		gl.clearColor(0, 0, 0, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
-		// Сначала рисуем оси, затем график параболы.
 		this.axes.render()
 		this.parabola.render()
 	}

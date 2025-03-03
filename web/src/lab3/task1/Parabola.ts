@@ -17,7 +17,6 @@ class Parabola {
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
 		gl.enableVertexAttribArray(positionLocation)
 
-		// Устанавливаем цвет графика – белый.
 		const colorLocation = gl.getUniformLocation(this.program, 'u_color')
 		gl.uniform4f(colorLocation, 1, 1, 1, 1)
 
