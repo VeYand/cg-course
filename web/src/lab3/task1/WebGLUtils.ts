@@ -16,11 +16,7 @@ const fragmentShaderSource = `
   }
 `
 
-function compileShader(
-	gl: WebGLRenderingContext,
-	type: number,
-	source: string,
-): WebGLShader {
+const compileShader = (gl: WebGLRenderingContext, type: number, source: string): WebGLShader => {
 	const shader = gl.createShader(type)
 	if (!shader) {
 		throw new Error('Не удалось создать шейдер')
@@ -35,7 +31,7 @@ function compileShader(
 	return shader
 }
 
-function createShaderProgram(gl: WebGLRenderingContext): WebGLProgram {
+const createShaderProgram = (gl: WebGLRenderingContext): WebGLProgram => {
 	const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
 	const fragmentShader = compileShader(
 		gl,
@@ -57,10 +53,7 @@ function createShaderProgram(gl: WebGLRenderingContext): WebGLProgram {
 	return program
 }
 
-function computeOrthoMatrix(
-	canvasWidth: number,
-	canvasHeight: number,
-): Float32Array {
+const computeOrthoMatrix = (canvasWidth: number, canvasHeight: number): Float32Array => {
 	const worldLeft = -5
 	const worldRight = 5
 	const worldBottom = -10

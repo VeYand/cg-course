@@ -1,7 +1,4 @@
 class Axes {
-	private readonly gl: WebGLRenderingContext
-	private readonly program: WebGLProgram
-
 	private axesBuffer: WebGLBuffer | null = null
 	private ticksBuffer: WebGLBuffer | null = null
 	private arrowBuffer: WebGLBuffer | null = null
@@ -10,9 +7,10 @@ class Axes {
 	private ticksVertexCount = 0
 	private arrowVertexCount = 0
 
-	constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
-		this.gl = gl
-		this.program = program
+	constructor(
+		private readonly gl: WebGLRenderingContext,
+		private readonly program: WebGLProgram,
+	) {
 		this.initBuffers()
 	}
 

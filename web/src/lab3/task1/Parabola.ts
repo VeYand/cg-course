@@ -1,12 +1,11 @@
 class Parabola {
-	private readonly gl: WebGLRenderingContext
-	private readonly program: WebGLProgram
 	private vertexBuffer: WebGLBuffer | null = null
 	private vertexCount = 0
 
-	constructor(gl: WebGLRenderingContext, program: WebGLProgram) {
-		this.gl = gl
-		this.program = program
+	constructor(
+		private readonly gl: WebGLRenderingContext,
+		private readonly program: WebGLProgram,
+	) {
 		this.initVertexBuffer()
 	}
 
@@ -35,13 +34,12 @@ class Parabola {
 		}
 		this.vertexCount = vertices.length / 2
 
-		const gl = this.gl
-		this.vertexBuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer)
-		gl.bufferData(
-			gl.ARRAY_BUFFER,
+		this.vertexBuffer = this.gl.createBuffer()
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer)
+		this.gl.bufferData(
+			this.gl.ARRAY_BUFFER,
 			new Float32Array(vertices),
-			gl.STATIC_DRAW,
+			this.gl.STATIC_DRAW,
 		)
 	}
 }
