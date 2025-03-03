@@ -33,11 +33,7 @@ const compileShader = (gl: WebGLRenderingContext, type: number, source: string):
 
 const createShaderProgram = (gl: WebGLRenderingContext): WebGLProgram => {
 	const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
-	const fragmentShader = compileShader(
-		gl,
-		gl.FRAGMENT_SHADER,
-		fragmentShaderSource,
-	)
+	const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
 
 	const program = gl.createProgram()
 	if (!program) {
@@ -81,8 +77,8 @@ const computeOrthoMatrix = (canvasWidth: number, canvasHeight: number): Float32A
 		top = worldTop + delta
 	}
 
-	const tx = -(right + left) / (right - left)
-	const ty = -(top + bottom) / (top - bottom)
+	const tx = (right + left) / (left - right)
+	const ty = (top + bottom) / (bottom - top)
 	const sx = 2 / (right - left)
 	const sy = 2 / (top - bottom)
 

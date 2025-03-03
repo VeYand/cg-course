@@ -9,6 +9,7 @@ class App {
 	private readonly program: WebGLProgram
 	private parabola: Parabola
 	private axes: Axes
+	private orthoMatrix: Float32Array
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
@@ -28,6 +29,10 @@ class App {
 		this.parabola = new Parabola(gl, this.program)
 		this.axes = new Axes(gl, this.program)
 
+		this.orthoMatrix = computeOrthoMatrix(
+			this.canvas.width,
+			this.canvas.height,
+		)
 		this.setupEventListeners()
 	}
 
@@ -36,13 +41,9 @@ class App {
 		requestAnimationFrame(this.render)
 		const gl = this.gl
 
-		const orthoMatrix = computeOrthoMatrix(
-			this.canvas.width,
-			this.canvas.height,
-		)
 		const matrixLocation = gl.getUniformLocation(this.program, 'u_matrix')
 		gl.useProgram(this.program)
-		gl.uniformMatrix4fv(matrixLocation, false, orthoMatrix)
+		gl.uniformMatrix4fv(matrixLocation, false, this.orthoMatrix)
 
 		gl.clearColor(0, 0, 0, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
@@ -63,6 +64,10 @@ class App {
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight
 		this.gl.viewport(0, 0, window.innerWidth, window.innerHeight)
+		this.orthoMatrix = computeOrthoMatrix(
+			this.canvas.width,
+			this.canvas.height,
+		)
 		this.render()
 	}
 }
