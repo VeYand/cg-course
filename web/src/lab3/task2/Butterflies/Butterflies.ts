@@ -1,4 +1,5 @@
 import {Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 import {Butterfly} from './Butterfly'
 
 class Butterflies implements Renderable {
@@ -24,10 +25,12 @@ class Butterflies implements Renderable {
 	}
 
 	private initButterflies() {
+		const {width} = getWorldSize()
+
 		for (let i = 0; i < 10; i++) {
-			const x = Math.random() * 10 - 5
+			const x = Math.random() * width - width / 2
 			const y = Math.random() * 3 - 1
-			const targetX = Math.random() * 10 - 5
+			const targetX = Math.random() * width - width / 2
 			const targetY = Math.random() * 3 - 1
 
 			this.butterflies.push(new Butterfly(

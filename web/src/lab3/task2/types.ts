@@ -3,6 +3,11 @@ type Position = {
 	y: number,
 }
 
+type Size = {
+	width: number,
+	height: number,
+}
+
 type Color = {
 	r: number,
 	g: number,
@@ -12,11 +17,12 @@ type Color = {
 
 type Renderable = {
 	render: () => void,
-	update: (time: number) => void,
+	update: () => void,
 }
 
 export type {
 	Position,
 	Color,
 	Renderable,
+	Size,
 }

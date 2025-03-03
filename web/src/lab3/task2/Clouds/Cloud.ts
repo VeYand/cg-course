@@ -1,4 +1,5 @@
 import {Position, Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 
 type CloudData = {
 	position: Position,
@@ -33,9 +34,10 @@ class Cloud implements Renderable {
 	}
 
 	update() {
+		const {width} = getWorldSize()
 		this.data.position.x += this.data.speed
-		if (this.data.position.x > 8) {
-			this.data.position.x = -8
+		if (this.data.position.x > width / 2) {
+			this.data.position.x = -width / 2
 		}
 	}
 

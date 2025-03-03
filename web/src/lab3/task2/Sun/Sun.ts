@@ -1,9 +1,8 @@
-import {Renderable} from '../types'
+import {Position, Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 
 class Sun implements Renderable {
 	private buffer: WebGLBuffer | null = null
-	private centerX = 3
-	private centerY = 8
 	private radius = 1
 	private segments = 30
 
@@ -11,19 +10,23 @@ class Sun implements Renderable {
 	constructor(
 		private readonly gl: WebGLRenderingContext,
 		private readonly program: WebGLProgram,
+		private position: Position,
 	) {
 		this.buffer = this.gl.createBuffer()
 	}
 
 	update() {
-		this.centerY -= 0.001
-		if (this.centerY < -2) {
-			this.centerY = 8
+		const {height} = getWorldSize()
+		const [top, bottom] = [height / 2, -height / 2]
+
+		this.position.y -= 0.002
+		if (this.position.y < bottom) {
+			this.position.y = top
 		}
 	}
 
 	getSunHeight(): number {
-		return ((this.centerY - (-2)) / (8 - (-2))) * 2 - 1
+		return ((this.position.y - (-2)) / (8 - (-2))) * 2 - 1
 	}
 
 	render() {
@@ -42,10 +45,10 @@ class Sun implements Renderable {
 
 	private getVertices() {
 		const vertices: number[] = []
-		vertices.push(this.centerX, this.centerY)
+		vertices.push(this.position.x, this.position.y)
 		for (let i = 0; i <= this.segments; i++) {
 			const angle = (i / this.segments) * 2 * Math.PI
-			vertices.push(this.centerX + this.radius * Math.cos(angle), this.centerY + this.radius * Math.sin(angle))
+			vertices.push(this.position.x + this.radius * Math.cos(angle), this.position.y + this.radius * Math.sin(angle))
 		}
 		return vertices
 	}

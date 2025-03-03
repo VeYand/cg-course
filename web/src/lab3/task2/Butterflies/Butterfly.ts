@@ -1,4 +1,5 @@
 import {Color, Position, Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 
 type ButterflyData = {
 	position: Position,
@@ -27,16 +28,17 @@ class Butterfly implements Renderable {
 	}
 
 	update() {
+		const {width} = getWorldSize()
 		const dx = this.data.target.x - this.data.position.x
 		const dy = this.data.target.y - this.data.position.y
 		const dist = Math.hypot(dx, dy)
 		if (dist < 0.1) {
-			this.data.target.x = Math.random() * 10 - 5
+			this.data.target.x = Math.random() * width - width / 2
 			this.data.target.y = Math.random() * 3 - 1
 		}
 		else {
-			this.data.position.x += dx * 0.01
-			this.data.position.y += dy * 0.01
+			this.data.position.x += dx * 0.001
+			this.data.position.y += dy * 0.001
 		}
 	}
 

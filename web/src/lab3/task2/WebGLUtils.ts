@@ -1,3 +1,5 @@
+import {Size} from './types'
+
 const vertexShaderSource = `
   attribute vec2 position;
   uniform mat4 u_matrix;
@@ -50,10 +52,12 @@ const createShaderProgram = (gl: WebGLRenderingContext): WebGLProgram => {
 }
 
 const computeOrthoMatrix = (canvasWidth: number, canvasHeight: number): Float32Array => {
-	const worldLeft = -5
-	const worldRight = 5
-	const worldBottom = -10
-	const worldTop = 10
+	const {width, height} = getWorldSize()
+
+	const worldLeft = -width / 2
+	const worldRight = width / 2
+	const worldBottom = -height / 2
+	const worldTop = height / 2
 	const worldWidth = worldRight - worldLeft
 	const worldHeight = worldTop - worldBottom
 	const worldAspect = worldWidth / worldHeight
@@ -90,7 +94,10 @@ const computeOrthoMatrix = (canvasWidth: number, canvasHeight: number): Float32A
 	])
 }
 
+const getWorldSize = (): Size => ({width: 30, height: 20})
+
 export {
 	createShaderProgram,
 	computeOrthoMatrix,
+	getWorldSize,
 }

@@ -1,4 +1,5 @@
 import {Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 
 class Stars implements Renderable {
 	private vertexCount = 0
@@ -26,11 +27,13 @@ class Stars implements Renderable {
 	}
 
 	private initStars() {
+		const {width, height} = getWorldSize()
+
 		const stars: number[] = []
 
-		for (let i = 0; i < 50; i++) {
-			const x = Math.random() * 10 - 5
-			const y = Math.random() * 10
+		for (let i = 0; i < 300; i++) {
+			const x = Math.random() * width - width / 2
+			const y = Math.random() * (height / 2)
 			stars.push(x, y)
 		}
 

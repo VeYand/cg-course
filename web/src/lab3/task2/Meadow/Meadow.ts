@@ -1,4 +1,5 @@
 import {Color, Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 
 class Meadow implements Renderable {
 	private patches: {vertices: Float32Array, color: Color}[] = []
@@ -31,17 +32,23 @@ class Meadow implements Renderable {
 	}
 
 	private initPatches() {
+		const {width, height} = getWorldSize()
+		const [left, right, bottom] = [-width / 2, width / 2, -height / 2]
 		const patchesInfo = [
-			{x1: -5, x2: -2.5, color: {r: 0.2, g: 0.8, b: 0.2, a: 1}},
-			{x1: -2.5, x2: 0, color: {r: 0.1, g: 0.7, b: 0.1, a: 1}},
-			{x1: 0, x2: 2.5, color: {r: 0.3, g: 0.85, b: 0.3, a: 1}},
-			{x1: 2.5, x2: 5, color: {r: 0.15, g: 0.75, b: 0.15, a: 1}},
+			{x1: left, x2: left / 2, color: {r: 0.2, g: 0.8, b: 0.2, a: 1}},
+			{x1: left / 2, x2: 0, color: {r: 0.1, g: 0.7, b: 0.1, a: 1}},
+			{x1: 0, x2: right / 2, color: {r: 0.3, g: 0.85, b: 0.3, a: 1}},
+			{x1: right / 2, x2: right, color: {r: 0.15, g: 0.75, b: 0.15, a: 1}},
 		]
 		for (const patch of patchesInfo) {
 			const {x1, x2, color} = patch
 			const vertices = new Float32Array([
-				x1, -10, x2, -10, x1, 0,
-				x1, 0, x2, -10, x2, 0,
+				x1, bottom,
+				x2, bottom,
+				x1, 0,
+				x1, 0,
+				x2, bottom,
+				x2, 0,
 			])
 			this.patches.push({vertices, color})
 		}

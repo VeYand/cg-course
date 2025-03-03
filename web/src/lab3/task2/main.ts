@@ -6,7 +6,7 @@ import {Meadow} from './Meadow/Meadow'
 import {Moon} from './Moon/Moon'
 import {Stars} from './Stars/Stars'
 import {Sun} from './Sun/Sun'
-import {createShaderProgram, computeOrthoMatrix} from './WebGLUtils'
+import {createShaderProgram, computeOrthoMatrix, getWorldSize} from './WebGLUtils'
 
 class App {
 	private readonly canvas: HTMLCanvasElement
@@ -20,7 +20,6 @@ class App {
 	private clouds: Clouds
 	private moon: Moon
 	private stars: Stars
-	private time = 0
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
@@ -36,12 +35,14 @@ class App {
 		gl.useProgram(this.program)
 		this.orthoMatrix = computeOrthoMatrix(this.canvas.width, this.canvas.height)
 
+		const {width, height} = getWorldSize()
+
 		this.meadow = new Meadow(gl, this.program)
 		this.grass = new Grass(gl, this.program)
 		this.butterflies = new Butterflies(gl, this.program)
-		this.sun = new Sun(gl, this.program)
+		this.sun = new Sun(gl, this.program, {x: width / 4, y: height / 2})
 		this.clouds = new Clouds(gl, this.program)
-		this.moon = new Moon(gl, this.program)
+		this.moon = new Moon(gl, this.program, {x: -width / 4, y: -height / 2})
 		this.stars = new Stars(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)
@@ -50,7 +51,6 @@ class App {
 	render = () => {
 		requestAnimationFrame(this.render)
 		const gl = this.gl
-		this.time += 0.01
 
 		this.sun.update()
 		this.clouds.update()
@@ -75,14 +75,17 @@ class App {
 	}
 
 	private computeSkyColor(sunHeight: number) {
+		const minColor = {r: 0.05, g: 0.05, b: 0.2}
+
 		if (sunHeight > 0) {
 			return {
-				r: 0.53 * sunHeight,
-				g: 0.81 * sunHeight,
-				b: 0.98 * sunHeight,
+				r: minColor.r + (0.53 - minColor.r) * sunHeight,
+				g: minColor.g + (0.81 - minColor.g) * sunHeight,
+				b: minColor.b + (0.98 - minColor.b) * sunHeight,
 			}
 		}
-		return {r: 0.05, g: 0.05, b: 0.2}
+
+		return minColor
 	}
 
 	private resizeCanvas = () => {

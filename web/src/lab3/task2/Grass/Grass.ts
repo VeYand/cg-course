@@ -1,4 +1,5 @@
 import {Renderable} from '../types'
+import {getWorldSize} from '../WebGLUtils'
 import {GrassBlade} from './GrassBlade'
 
 class Grass implements Renderable {
@@ -24,8 +25,10 @@ class Grass implements Renderable {
 	}
 
 	private initGrass() {
+		const {width} = getWorldSize()
+
 		for (let i = 0; i < 100; i++) {
-			const x = Math.random() * 10 - 5
+			const x = Math.random() * width - width / 2
 			const y = -1 + Math.random()
 			const bladeWidth = 0.1 + Math.random() * 0.1
 			const bladeHeight = 0.2 + Math.random() * 0.3
