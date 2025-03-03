@@ -78,7 +78,6 @@ class ExperimentsFieldView implements BaseView {
 		const draggableEls = grid.querySelectorAll('.draggable-element')
 		for (const otherEl of Array.from(draggableEls)) {
 			if (otherEl === droppedEl) {
-				console.log('wtf')
 				continue
 			}
 			const otherRect = otherEl.getBoundingClientRect()
