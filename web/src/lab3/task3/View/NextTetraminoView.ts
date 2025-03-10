@@ -34,6 +34,4 @@ class NextTetraminoView implements Renderable, IDocumentListener {
 	}
 }
 
-export {
-	NextTetraminoView,
-}
+export {NextTetraminoView}

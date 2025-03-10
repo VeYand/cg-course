@@ -1,23 +1,10 @@
 import {TileData} from './TetrisDocument'
 
 type GameEvent =
-	| {type: 'updatedField', data: UpdatedFieldPayload}
-	| {type: 'nextTetramino', data: NextTetraminoPayload}
-	| {type: 'lineClear', data: LineClearPayload}
+	| {type: 'updatedField', data: {newTiles: TileData[]}}
+	| {type: 'nextTetramino', data: {newTiles: TileData[]}}
+	| {type: 'lineClear', data: {lines: number[]}}
+	| {type: 'levelUp', data: {level: number}}
 	| {type: 'gameOver'}
 
-type UpdatedFieldPayload = {
-	newTiles: TileData[],
-}
-
-type NextTetraminoPayload = {
-	newTiles: TileData[],
-}
-
-type LineClearPayload = {
-	lines: number[],
-}
-
-export type {
-	GameEvent,
-}
+export type {GameEvent}

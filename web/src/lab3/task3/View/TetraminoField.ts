@@ -1,8 +1,8 @@
 import {GameEvent} from '../Document/GameEvent'
 import {IDocumentListener} from '../Document/IDocumentListener'
-import {TetrisDocument, TileData} from '../Document/TetrisDocument'
-import {Renderer} from '../Renderer'
+import {TetrisDocument} from '../Document/TetrisDocument'
 import {Renderable} from '../types'
+import {Renderer} from './Renderer'
 
 class TetraminoField implements Renderable, IDocumentListener {
 	constructor(
@@ -16,7 +16,6 @@ class TetraminoField implements Renderable, IDocumentListener {
 
 	render() {
 		const field = this.gameDocument.getField()
-		// Проходим по 2D-массиву поля и рисуем каждую заполненную ячейку
 		for (let y = 0; y < field.length; y++) {
 			for (let x = 0; x < field[y].length; x++) {
 				const cell = field[y][x]
@@ -29,10 +28,8 @@ class TetraminoField implements Renderable, IDocumentListener {
 	}
 
 	notify(event: GameEvent) {
-		// При необходимости можно обрабатывать события обновления поля
+		// При необходимости можно обработать обновления поля
 	}
 }
 
-export {
-	TetraminoField,
-}
+export {TetraminoField}

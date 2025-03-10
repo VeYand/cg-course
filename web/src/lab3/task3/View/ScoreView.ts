@@ -9,11 +9,13 @@ class ScoreView implements Renderable, IDocumentListener {
 	private offscreenCanvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 	private lastScore = -1
+	private lastLevel = -1
+	private lastLines = -1
 	private readonly gameDocument: TetrisDocument
 
-	// Позиция и размер области для отображения счета в мировых координатах
-	private x = -9   // слева от центра
-	private y = 12   // сверху (можно настроить)
+	// Позиция и размер области для отображения информационной панели
+	private x = -9
+	private y = 12
 	private width = 8
 	private height = 4
 
@@ -34,14 +36,18 @@ class ScoreView implements Renderable, IDocumentListener {
 		}
 		this.ctx = ctx
 		this.scoreTexture = gl.createTexture()
-		this.updateScoreTexture(this.gameDocument.getScore())
+		this.updateScoreTexture()
 	}
 
 	render() {
 		const currentScore = this.gameDocument.getScore()
-		if (currentScore !== this.lastScore) {
-			this.updateScoreTexture(currentScore)
+		const currentLevel = this.gameDocument.getLevel()
+		const currentLines = this.gameDocument.getLinesCleared()
+		if (currentScore !== this.lastScore || currentLevel !== this.lastLevel || currentLines !== this.lastLines) {
+			this.updateScoreTexture()
 			this.lastScore = currentScore
+			this.lastLevel = currentLevel
+			this.lastLines = currentLines
 		}
 		if (this.scoreTexture) {
 			this.renderer.drawTexturedQuad(this.x, this.y, this.width, this.height, this.scoreTexture)
@@ -49,23 +55,26 @@ class ScoreView implements Renderable, IDocumentListener {
 	}
 
 	notify(event: GameEvent) {
-		// При изменениях можно обновлять счет, здесь обновление происходит в render()
+		// Обработка событий по необходимости
 	}
 
-	private updateScoreTexture(score: number) {
+	private updateScoreTexture() {
 		const ctx = this.ctx
-		// Очищаем холст
 		ctx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height)
-		// Заливаем фон
 		ctx.fillStyle = 'black'
 		ctx.fillRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height)
-		// Рисуем текст счета
 		ctx.fillStyle = 'white'
-		ctx.font = '48px sans-serif'
-		ctx.textAlign = 'center'
-		ctx.textBaseline = 'middle'
-		ctx.fillText(`Score: ${score}`, this.offscreenCanvas.width / 2, this.offscreenCanvas.height / 2)
-		// Обновляем текстуру WebGL
+		ctx.font = '20px sans-serif'
+		ctx.textAlign = 'left'
+		ctx.textBaseline = 'top'
+		const scoreText = `Score: ${this.gameDocument.getScore()}`
+		const levelText = `Level: ${this.gameDocument.getLevel()}`
+		const linesText = `Lines: ${this.gameDocument.getLinesCleared()}/${this.gameDocument.getLinesToLevelUp()}`
+		const nextText = `Next: ${this.gameDocument.getNextTetraminoType()}`
+		ctx.fillText(scoreText, 10, 10)
+		ctx.fillText(levelText, 10, 40)
+		ctx.fillText(linesText, 10, 70)
+		ctx.fillText(nextText, 10, 100)
 		const gl = this.gl
 		gl.bindTexture(gl.TEXTURE_2D, this.scoreTexture)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.offscreenCanvas)
@@ -76,6 +85,4 @@ class ScoreView implements Renderable, IDocumentListener {
 	}
 }
 
-export {
-	ScoreView,
-}
+export {ScoreView}

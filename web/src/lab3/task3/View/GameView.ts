@@ -6,6 +6,7 @@ import {ScoreView} from './ScoreView'
 import {TetraminoField} from './TetraminoField'
 
 class GameView implements Renderable {
+	document!: TetrisDocument
 	private nextTetraminoView: NextTetraminoView
 	private scoreView: ScoreView
 	private tetraminoField: TetraminoField
@@ -16,6 +17,7 @@ class GameView implements Renderable {
 		program: WebGLProgram,
 		gameDocument: TetrisDocument,
 	) {
+		this.document = gameDocument
 		this.renderer = new Renderer(gl, program)
 		this.nextTetraminoView = new NextTetraminoView(gl, program, gameDocument, this.renderer)
 		this.scoreView = new ScoreView(gl, program, gameDocument, this.renderer)
@@ -29,6 +31,4 @@ class GameView implements Renderable {
 	}
 }
 
-export {
-	GameView,
-}
+export {GameView}

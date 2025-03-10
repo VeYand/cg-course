@@ -2,7 +2,6 @@ import {GameEvent} from './GameEvent'
 import {IDocumentListener} from './IDocumentListener'
 import {Tetramino, TETRAMINO_TYPE} from './Tetris'
 
-
 type Color = {
 	r: number,
 	g: number,
@@ -15,18 +14,22 @@ type Tile = {
 	y: number,
 }
 
-type TileData = {
+export type TileData = {
 	tile?: Tile,
 }
 
 class TetrisDocument {
 	private field: TileData[][]
-
 	private currentTetramino: Tetramino
 	private nextTetramino: Tetramino
-
 	private listeners: IDocumentListener[] = []
 	private previousMovingTiles: TileData[] = []
+
+	private score = 0
+	private level = 1
+	private linesCleared = 0
+	private linesToLevelUp = 10
+	private dropSpeed = 1000 // мс
 
 	constructor(
 		private readonly rows: number,
@@ -70,7 +73,27 @@ class TetrisDocument {
 	}
 
 	getScore() {
-		return 123
+		return this.score
+	}
+
+	getLevel() {
+		return this.level
+	}
+
+	getLinesCleared() {
+		return this.linesCleared
+	}
+
+	getLinesToLevelUp() {
+		return this.linesToLevelUp
+	}
+
+	getDropSpeed() {
+		return this.dropSpeed
+	}
+
+	getNextTetraminoType() {
+		return this.nextTetramino.getType()
 	}
 
 	getField() {
@@ -93,11 +116,10 @@ class TetrisDocument {
 		const types = Object.values(TETRAMINO_TYPE)
 		const randomType = types[Math.floor(Math.random() * types.length)]
 		if (!randomType) {
-			throw new Error('Error on generate tetramino')
+			throw new Error('Ошибка при генерации тетрамино')
 		}
 		return new Tetramino(randomType)
 	}
-
 
 	private notify(event: GameEvent) {
 		this.listeners.forEach(listener => listener.notify(event))
@@ -194,6 +216,15 @@ class TetrisDocument {
 			}
 		}
 		if (clearedLines.length) {
+			let points = 0
+			switch (clearedLines.length) {
+				case 1: points = 10; break
+				case 2: points = 30; break
+				case 3: points = 70; break
+				case 4: points = 150; break
+			}
+			this.score += points
+			this.linesCleared += clearedLines.length
 			this.notify({type: 'lineClear', data: {lines: clearedLines}})
 			const changedTiles: TileData[] = []
 			for (let y = 0; y < this.rows; y++) {
@@ -203,6 +234,30 @@ class TetrisDocument {
 				}
 			}
 			this.notify({type: 'updatedField', data: {newTiles: changedTiles}})
+			this.checkLevelUp()
+		}
+	}
+
+	private checkLevelUp() {
+		if (this.linesCleared >= this.linesToLevelUp) {
+			// Подсчитываем бонус: количество пустых строк * 10
+			const freeRows = this.field.reduce((count, row) => count + (row.every(cell => cell.tile === undefined) ? 1 : 0), 0)
+			const bonus = freeRows * 10
+			this.score += bonus
+			// Очищаем поле и повышаем уровень
+			this.field = this.createEmptyField()
+			this.level++
+			this.dropSpeed = Math.max(200, this.dropSpeed - 100)
+			this.linesToLevelUp += 10
+			this.linesCleared = 0
+			this.notify({type: 'levelUp', data: {level: this.level}})
+			const clearedTiles: TileData[] = []
+			for (let y = 0; y < this.rows; y++) {
+				for (let x = 0; x < this.cols; x++) {
+					clearedTiles.push({tile: undefined})
+				}
+			}
+			this.notify({type: 'updatedField', data: {newTiles: clearedTiles}})
 		}
 	}
 
@@ -232,12 +287,19 @@ class TetrisDocument {
 		})
 		return Object.values(deltaMap)
 	}
+
+	restartGame() {
+		this.field = this.createEmptyField()
+		this.score = 0
+		this.level = 1
+		this.linesCleared = 0
+		this.linesToLevelUp = 10
+		this.dropSpeed = 1000
+		this.currentTetramino = this.generateTetramino()
+		this.nextTetramino = this.generateTetramino()
+		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
+		this.notify({type: 'updatedField', data: {newTiles: this.previousMovingTiles}})
+	}
 }
 
-export type {
-	TileData,
-}
-
-export {
-	TetrisDocument,
-}
+export {TetrisDocument}

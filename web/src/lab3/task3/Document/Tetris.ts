@@ -106,11 +106,5 @@ class Tetramino {
 	}
 }
 
-export type {
-	Position,
-}
-
-export {
-	Tetramino,
-	TETRAMINO_TYPE,
-}
+export type {Position}
+export {Tetramino, TETRAMINO_TYPE}
