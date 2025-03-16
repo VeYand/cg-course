@@ -3,11 +3,6 @@ type Size = {
 	height: number,
 }
 
-type Renderable = {
-	render: () => void,
-}
-
 export type {
-	Renderable,
 	Size,
 }

@@ -1,6 +1,6 @@
 import {GameEvent} from './GameEvent'
 import {IDocumentListener} from './IDocumentListener'
-import {Tetramino, TETRAMINO_TYPE} from './Tetris'
+import {Tetramino, TETRAMINO_TYPE} from './Tetramino'
 
 type Color = {
 	r: number,
@@ -14,9 +14,20 @@ type Tile = {
 	y: number,
 }
 
-export type TileData = {
+type TileData = {
 	tile?: Tile,
 }
+
+enum HORIZONTAL_DIRECTION {
+	LEFT = 'left',
+	RIGHT = 'right',
+}
+
+enum VERTICAL_DIRECTION {
+	DOWN = 'down',
+}
+
+type DIRECTION = HORIZONTAL_DIRECTION | VERTICAL_DIRECTION
 
 class TetrisDocument {
 	private field: TileData[][]
@@ -29,7 +40,8 @@ class TetrisDocument {
 	private level = 1
 	private linesCleared = 0
 	private linesToLevelUp = 10
-	private dropSpeed = 1000 // мс
+	private dropSpeed = 1000
+	private gameOver = false
 
 	constructor(
 		private readonly rows: number,
@@ -48,56 +60,73 @@ class TetrisDocument {
 	rotateCurrentTetramino() {
 		const rotated = this.currentTetramino.getRotatedVersion()
 		if (this.canRotate(rotated)) {
-			const prevTiles = this.getTetraminoTileData(this.currentTetramino)
 			this.currentTetramino.rotate()
-			const newTiles = this.getTetraminoTileData(this.currentTetramino)
-			const delta = this.computeDelta(prevTiles, newTiles)
-			this.previousMovingTiles = newTiles
-			this.notify({type: 'updatedField', data: {newTiles: delta}})
+			this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
+			this.notify({type: 'tetraminoFieldUpdated'})
 		}
 	}
 
-	moveCurrentTetramino(dx: number, dy: number) {
-		if (this.canMove(this.currentTetramino, dx, dy)) {
-			const prevTiles = this.getTetraminoTileData(this.currentTetramino)
-			this.currentTetramino.move(dx, dy)
-			const newTiles = this.getTetraminoTileData(this.currentTetramino)
-			const delta = this.computeDelta(prevTiles, newTiles)
-			this.previousMovingTiles = newTiles
-			this.notify({type: 'updatedField', data: {newTiles: delta}})
-		}
-		else {
-			this.fixTetramino()
-			this.spawnNextTetramino()
-		}
+	lowerTetramino() {
+		this.moveCurrentTetraminoImpl(VERTICAL_DIRECTION.DOWN)
 	}
 
-	getScore() {
-		return this.score
+	moveCurrentTetramino(direction: HORIZONTAL_DIRECTION) {
+		this.moveCurrentTetraminoImpl(direction)
 	}
 
-	getLevel() {
-		return this.level
-	}
-
-	getLinesCleared() {
-		return this.linesCleared
-	}
 
 	getLinesToLevelUp() {
 		return this.linesToLevelUp
 	}
 
-	getDropSpeed() {
-		return this.dropSpeed
-	}
-
-	getNextTetraminoType() {
-		return this.nextTetramino.getType()
+	getCurrentTetraminoTiles(): TileData[] {
+		return this.getTetraminoTileData(this.currentTetramino)
 	}
 
 	getField() {
 		return this.field
+	}
+
+	restartGame() {
+		this.startGame()
+	}
+
+	private startGame() {
+		this.field = this.createEmptyField()
+		this.score = 0
+		this.level = 1
+		this.linesCleared = 0
+		this.linesToLevelUp = 10
+		this.dropSpeed = 1000
+		this.gameOver = false
+		this.currentTetramino = this.generateTetramino()
+		this.nextTetramino = this.generateTetramino()
+		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
+		this.notify({type: 'tetraminoFieldUpdated'})
+		this.gameTickHandler()
+	}
+
+	private gameTickHandler() {
+		if (this.gameOver) {
+			return
+		}
+
+		this.lowerTetramino()
+		setTimeout(() => this.gameTickHandler(), this.dropSpeed)
+	}
+
+	private isTetraminoLies() {
+		for (const block of this.currentTetramino.getBlocks()) {
+			const xUnderBlock = this.currentTetramino.getPosition().x + block.x
+			const yUnderBlock = this.currentTetramino.getPosition().y + block.y - 1
+			if (yUnderBlock < 0) {
+				return true
+			}
+			if (this.field[yUnderBlock]?.[xUnderBlock]?.tile !== undefined) {
+				return true
+			}
+		}
+		return false
 	}
 
 	private createEmptyField(): TileData[][] {
@@ -121,10 +150,6 @@ class TetrisDocument {
 		return new Tetramino(randomType)
 	}
 
-	private notify(event: GameEvent) {
-		this.listeners.forEach(listener => listener.notify(event))
-	}
-
 	private getColorForTetramino(type: TETRAMINO_TYPE): Color {
 		switch (type) {
 			case TETRAMINO_TYPE.I:
@@ -146,20 +171,29 @@ class TetrisDocument {
 		}
 	}
 
+	private moveCurrentTetraminoImpl(direction: DIRECTION) {
+		const {dx, dy} = this.parseDirection(direction)
+		if (this.canMove(this.currentTetramino, dx, dy)) {
+			this.currentTetramino.move(dx, dy)
+			this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
+			this.notify({type: 'tetraminoFieldUpdated'})
+		}
+		else if (this.isTetraminoLies()) {
+			this.fixTetramino()
+			this.spawnNextTetramino()
+		}
+	}
+
 	private getTetraminoTileData(tetramino: Tetramino): TileData[] {
 		const blocks = tetramino.getBlocks()
 		const color = this.getColorForTetramino(tetramino.getType())
-		return blocks.map(block => {
-			const absX = tetramino.getPosition().x + block.x
-			const absY = tetramino.getPosition().y + block.y
-			return {
-				tile: {
-					color,
-					x: absX,
-					y: absY,
-				},
-			}
-		})
+		return blocks.map(block => ({
+			tile: {
+				color,
+				x: tetramino.getPosition().x + block.x,
+				y: tetramino.getPosition().y + block.y,
+			},
+		}))
 	}
 
 	private canMove(tetramino: Tetramino, dx: number, dy: number): boolean {
@@ -169,7 +203,7 @@ class TetrisDocument {
 			if (newX < 0 || newX >= this.cols || newY < 0 || newY >= this.rows) {
 				return false
 			}
-			if (this.field[newY][newX].tile !== undefined) {
+			if (this.field[newY]?.[newX]?.tile !== undefined) {
 				return false
 			}
 		}
@@ -183,7 +217,7 @@ class TetrisDocument {
 			if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) {
 				return false
 			}
-			if (this.field[y][x].tile !== undefined) {
+			if (this.field[y]?.[x]?.tile !== undefined) {
 				return false
 			}
 		}
@@ -193,24 +227,35 @@ class TetrisDocument {
 	private fixTetramino() {
 		const tetrominoTiles = this.getTetraminoTileData(this.currentTetramino)
 		tetrominoTiles.forEach(tileData => {
-			const x = tileData.tile!.x
-			const y = tileData.tile!.y
-			this.field[y][x] = {tile: tileData.tile}
+			if (tileData.tile) {
+				const x = tileData.tile.x
+				const y = tileData.tile.y
+				if (this.field[y]?.[x] !== undefined) {
+					// @ts-expect-error
+					this.field[y][x] = {tile: tileData.tile}
+				}
+			}
 		})
-		this.notify({type: 'updatedField', data: {newTiles: tetrominoTiles}})
+		this.notify({type: 'tetraminoFieldUpdated'})
 		this.clearLines()
 	}
 
 	private clearLines() {
 		const clearedLines: number[] = []
 		for (let y = 0; y < this.rows; y++) {
-			if (this.field[y].every(cell => cell.tile !== undefined)) {
+			if (this.field[y]?.every(cell => cell.tile !== undefined)) {
 				clearedLines.push(y)
 				for (let x = 0; x < this.cols; x++) {
-					this.field[y][x] = {}
+					if (this.field[y]?.[x] !== undefined) {
+						// @ts-expect-error
+						this.field[y][x] = {}
+					}
 				}
 				for (let row = y; row > 0; row--) {
-					this.field[row] = this.field[row - 1].map(cell => ({...cell}))
+					if (this.field[row] !== undefined) {
+						// @ts-expect-error
+						this.field[row] = this.field[row - 1]?.map(cell => ({...cell}))
+					}
 				}
 				this.field[0] = Array.from({length: this.cols}, () => ({}))
 			}
@@ -218,88 +263,95 @@ class TetrisDocument {
 		if (clearedLines.length) {
 			let points = 0
 			switch (clearedLines.length) {
-				case 1: points = 10; break
-				case 2: points = 30; break
-				case 3: points = 70; break
-				case 4: points = 150; break
+				case 1:
+					points = 10
+					break
+				case 2:
+					points = 30
+					break
+				case 3:
+					points = 70
+					break
+				case 4:
+					points = 150
+					break
+				default:
+					points = 200
 			}
 			this.score += points
 			this.linesCleared += clearedLines.length
-			this.notify({type: 'lineClear', data: {lines: clearedLines}})
-			const changedTiles: TileData[] = []
-			for (let y = 0; y < this.rows; y++) {
-				for (let x = 0; x < this.cols; x++) {
-					const tile = this.field[y][x].tile
-					changedTiles.push(tile ? {tile: {...tile, x, y}} : {tile: undefined})
-				}
-			}
-			this.notify({type: 'updatedField', data: {newTiles: changedTiles}})
+			this.notify({type: 'clearedLines'})
+			this.notify({type: 'tetraminoFieldUpdated'})
 			this.checkLevelUp()
 		}
 	}
 
 	private checkLevelUp() {
 		if (this.linesCleared >= this.linesToLevelUp) {
-			// Подсчитываем бонус: количество пустых строк * 10
 			const freeRows = this.field.reduce((count, row) => count + (row.every(cell => cell.tile === undefined) ? 1 : 0), 0)
 			const bonus = freeRows * 10
 			this.score += bonus
-			// Очищаем поле и повышаем уровень
 			this.field = this.createEmptyField()
 			this.level++
 			this.dropSpeed = Math.max(200, this.dropSpeed - 100)
 			this.linesToLevelUp += 10
 			this.linesCleared = 0
-			this.notify({type: 'levelUp', data: {level: this.level}})
-			const clearedTiles: TileData[] = []
-			for (let y = 0; y < this.rows; y++) {
-				for (let x = 0; x < this.cols; x++) {
-					clearedTiles.push({tile: undefined})
-				}
-			}
-			this.notify({type: 'updatedField', data: {newTiles: clearedTiles}})
+			this.notify({
+				type: 'scoreUpdated',
+				data: {score: this.score, level: this.level, clearedLines: this.linesCleared},
+			})
+			this.notify({type: 'tetraminoFieldUpdated'})
 		}
 	}
 
 	private spawnNextTetramino() {
 		this.currentTetramino = this.nextTetramino
-		this.currentTetramino.setPosition({x: Math.floor(this.cols / 2) - 1, y: 0})
+		this.currentTetramino.setPosition({x: Math.floor(this.cols / 2) - 1, y: 18})
 		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
 		this.notify({type: 'nextTetramino', data: {newTiles: this.previousMovingTiles}})
 		this.nextTetramino = this.generateTetramino()
 		if (!this.canMove(this.currentTetramino, 0, 0)) {
-			this.notify({type: 'gameOver'})
+			this.handleGameOver()
 		}
 	}
 
-	private computeDelta(prev: TileData[], curr: TileData[]): TileData[] {
-		const deltaMap: {[key: string]: TileData} = {}
-		const key = (td: TileData) => (td.tile ? `${td.tile.x},${td.tile.y}` : '')
-		prev.forEach(td => {
-			if (td.tile) {
-				deltaMap[key(td)] = {tile: undefined}
-			}
-		})
-		curr.forEach(td => {
-			if (td.tile) {
-				deltaMap[key(td)] = td
-			}
-		})
-		return Object.values(deltaMap)
+	private parseDirection(direction: DIRECTION): ({dx: number, dy: number}) {
+		let dx = 0
+		let dy = 0
+
+		switch (direction) {
+			case HORIZONTAL_DIRECTION.RIGHT:
+				dx = 1
+				break
+			case HORIZONTAL_DIRECTION.LEFT:
+				dx = -1
+				break
+			case VERTICAL_DIRECTION.DOWN:
+				dy = -1
+				break
+		}
+
+		return {
+			dx, dy,
+		}
 	}
 
-	restartGame() {
-		this.field = this.createEmptyField()
-		this.score = 0
-		this.level = 1
-		this.linesCleared = 0
-		this.linesToLevelUp = 10
-		this.dropSpeed = 1000
-		this.currentTetramino = this.generateTetramino()
-		this.nextTetramino = this.generateTetramino()
-		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
-		this.notify({type: 'updatedField', data: {newTiles: this.previousMovingTiles}})
+	private handleGameOver() {
+		this.gameOver = true
+		this.notify({type: 'gameOver'})
+	}
+
+	private notify(event: GameEvent) {
+		this.listeners.forEach(listener => listener.notify(event))
 	}
 }
 
-export {TetrisDocument}
+export type {
+	TileData,
+	Color,
+}
+
+export {
+	TetrisDocument,
+	HORIZONTAL_DIRECTION,
+}

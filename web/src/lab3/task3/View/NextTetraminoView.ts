@@ -1,13 +1,12 @@
 import {GameEvent} from '../Document/GameEvent'
 import {IDocumentListener} from '../Document/IDocumentListener'
 import {TetrisDocument, TileData} from '../Document/TetrisDocument'
-import {Renderable} from '../types'
 import {Renderer} from './Renderer'
 
-class NextTetraminoView implements Renderable, IDocumentListener {
+class NextTetraminoView implements IDocumentListener {
 	private tiles: TileData[] = []
-	private offsetX = 12  // смещение для отрисовки "следующего" тетрамино
-	private offsetY = 10
+	private offsetX = 7
+	private offsetY = -8
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
@@ -18,19 +17,20 @@ class NextTetraminoView implements Renderable, IDocumentListener {
 		gameDocument.addListener(this)
 	}
 
+	notify(event: GameEvent) {
+		if (event.type === 'nextTetramino') {
+			this.tiles = event.data.newTiles
+			this.render()
+		}
+	}
+
 	render() {
 		this.tiles.forEach(tileData => {
 			if (tileData.tile) {
 				const {color, x, y} = tileData.tile
-				this.renderer.drawColoredQuad(x + this.offsetX, y + this.offsetY, 1, 1, color)
+				this.renderer.drawColoredQuad({x: x + this.offsetX, y: y + this.offsetY}, {width: 1, height: 1}, color)
 			}
 		})
-	}
-
-	notify(event: GameEvent) {
-		if (event.type === 'nextTetramino') {
-			this.tiles = event.data.newTiles
-		}
 	}
 }
 

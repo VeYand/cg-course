@@ -4,4 +4,6 @@ type IDocumentListener = {
 	notify: (event: GameEvent) => void,
 }
 
-export type {IDocumentListener}
+export type {
+	IDocumentListener,
+}

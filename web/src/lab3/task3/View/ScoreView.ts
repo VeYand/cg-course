@@ -1,19 +1,17 @@
 import {GameEvent} from '../Document/GameEvent'
 import {IDocumentListener} from '../Document/IDocumentListener'
 import {TetrisDocument} from '../Document/TetrisDocument'
-import {Renderable} from '../types'
 import {Renderer} from './Renderer'
 
-class ScoreView implements Renderable, IDocumentListener {
+class ScoreView implements IDocumentListener {
 	private scoreTexture: WebGLTexture | null = null
 	private offscreenCanvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
-	private lastScore = -1
-	private lastLevel = -1
-	private lastLines = -1
+	private score = 0
+	private level = 0
+	private clearedLines = 0
 	private readonly gameDocument: TetrisDocument
 
-	// Позиция и размер области для отображения информационной панели
 	private x = -9
 	private y = 12
 	private width = 8
@@ -39,23 +37,20 @@ class ScoreView implements Renderable, IDocumentListener {
 		this.updateScoreTexture()
 	}
 
-	render() {
-		const currentScore = this.gameDocument.getScore()
-		const currentLevel = this.gameDocument.getLevel()
-		const currentLines = this.gameDocument.getLinesCleared()
-		if (currentScore !== this.lastScore || currentLevel !== this.lastLevel || currentLines !== this.lastLines) {
-			this.updateScoreTexture()
-			this.lastScore = currentScore
-			this.lastLevel = currentLevel
-			this.lastLines = currentLines
-		}
-		if (this.scoreTexture) {
-			this.renderer.drawTexturedQuad(this.x, this.y, this.width, this.height, this.scoreTexture)
+	notify(event: GameEvent) {
+		if (event.type === 'scoreUpdated') {
+			this.score = event.data.score
+			this.level = event.data.level
+			this.clearedLines = event.data.clearedLines
+			this.render()
 		}
 	}
 
-	notify(event: GameEvent) {
-		// Обработка событий по необходимости
+	render() {
+		this.updateScoreTexture()
+		if (this.scoreTexture) {
+			this.renderer.drawTexturedQuad({x: this.x, y: this.y}, {width: this.width, height: this.height}, this.scoreTexture)
+		}
 	}
 
 	private updateScoreTexture() {
@@ -63,20 +58,19 @@ class ScoreView implements Renderable, IDocumentListener {
 		ctx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height)
 		ctx.fillStyle = 'black'
 		ctx.fillRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height)
-		ctx.fillStyle = 'white'
-		ctx.font = '20px sans-serif'
+		ctx.fillStyle = 'yellow'
+		ctx.font = '20px Montserrat'
 		ctx.textAlign = 'left'
 		ctx.textBaseline = 'top'
-		const scoreText = `Score: ${this.gameDocument.getScore()}`
-		const levelText = `Level: ${this.gameDocument.getLevel()}`
-		const linesText = `Lines: ${this.gameDocument.getLinesCleared()}/${this.gameDocument.getLinesToLevelUp()}`
-		const nextText = `Next: ${this.gameDocument.getNextTetraminoType()}`
-		ctx.fillText(scoreText, 10, 10)
-		ctx.fillText(levelText, 10, 40)
-		ctx.fillText(linesText, 10, 70)
-		ctx.fillText(nextText, 10, 100)
+		const scoreText = `Score: ${this.score}`
+		const levelText = `Level: ${this.level}`
+		const linesText = `Lines: ${this.clearedLines}/${this.gameDocument.getLinesToLevelUp()}`
+		ctx.fillText(scoreText, 10, 40)
+		ctx.fillText(levelText, 10, 70)
+		ctx.fillText(linesText, 10, 100)
 		const gl = this.gl
 		gl.bindTexture(gl.TEXTURE_2D, this.scoreTexture)
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.offscreenCanvas)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)

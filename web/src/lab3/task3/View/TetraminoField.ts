@@ -1,13 +1,13 @@
 import {GameEvent} from '../Document/GameEvent'
 import {IDocumentListener} from '../Document/IDocumentListener'
 import {TetrisDocument} from '../Document/TetrisDocument'
-import {Renderable} from '../types'
 import {Renderer} from './Renderer'
 
-class TetraminoField implements Renderable, IDocumentListener {
+class TetraminoField implements IDocumentListener {
+	private readonly boardOffsetX = -5
+	private readonly boardOffsetY = -10
+
 	constructor(
-		private readonly gl: WebGLRenderingContext,
-		private readonly program: WebGLProgram,
 		private readonly gameDocument: TetrisDocument,
 		private readonly renderer: Renderer,
 	) {
@@ -19,16 +19,22 @@ class TetraminoField implements Renderable, IDocumentListener {
 		for (let y = 0; y < field.length; y++) {
 			for (let x = 0; x < field[y].length; x++) {
 				const cell = field[y][x]
-				if (cell.tile) {
+				if (cell?.tile) {
 					const {color} = cell.tile
-					this.renderer.drawColoredQuad(x, y, 1, 1, color)
+					this.renderer.drawColoredQuad({x: x + this.boardOffsetX, y: y + this.boardOffsetY}, {width: 1, height: 1}, color)
 				}
 			}
 		}
+		const currentTiles = this.gameDocument.getCurrentTetraminoTiles()
+		currentTiles.forEach(tileData => {
+			if (tileData.tile) {
+				const {color, x, y} = tileData.tile
+				this.renderer.drawColoredQuad({x: x + this.boardOffsetX, y: y + this.boardOffsetY}, {width: 1, height: 1}, color)
+			}
+		})
 	}
 
-	notify(event: GameEvent) {
-		// При необходимости можно обработать обновления поля
+	notify(_: GameEvent) {
 	}
 }
 

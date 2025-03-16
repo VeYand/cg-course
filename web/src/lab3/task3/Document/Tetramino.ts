@@ -14,15 +14,15 @@ type Position = {
 }
 
 class Tetramino {
-	private readonly type: TETRAMINO_TYPE
 	private orientation = 0
 	private position: Position = {x: 0, y: 0}
 	private rotations: Position[][]
 
-	constructor(type: TETRAMINO_TYPE) {
-		this.type = type
+	constructor(
+		private readonly type: TETRAMINO_TYPE,
+	) {
 		this.rotations = this.initRotations(type)
-		this.position = {x: 3, y: 0}
+		this.position = {x: 3, y: 18}
 	}
 
 	getBlocks(): Position[] {
@@ -106,5 +106,10 @@ class Tetramino {
 	}
 }
 
-export type {Position}
-export {Tetramino, TETRAMINO_TYPE}
+export type {
+	Position,
+}
+export {
+	Tetramino,
+	TETRAMINO_TYPE,
+}
