@@ -71,7 +71,7 @@ class App {
 		this.meadow.render()
 		this.grass.render()
 		this.clouds.render()
-		this.butterflies.render()
+		this.butterflies.render() // TODO сделать так чтобы облака исчезали невидимым образом viewport. Поправить бабочки
 	}
 
 	private computeSkyColor(sunHeight: number) {
