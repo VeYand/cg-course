@@ -6,6 +6,8 @@ type GameEvent =
 	| {type: 'nextTetramino', data: {newTiles: TileData[]}}
 	| {type: 'scoreUpdated', data: {score: number, level: number, clearedLines: number}}
 	| {type: 'gameOver'}
+	| {type: 'someTetraminoFixed'}
+	| {type: 'levelUp'}
 
 
 export type {

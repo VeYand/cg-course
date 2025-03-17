@@ -1,7 +1,9 @@
+import {GameEvent} from '../Document/GameEvent'
 import {HORIZONTAL_DIRECTION, TetrisDocument} from '../Document/TetrisDocument'
 import {NextTetraminoView} from './NextTetraminoView'
 import {Renderer} from './Renderer'
 import {ScoreView} from './ScoreView'
+import {soundManager} from './SoundManager'
 import {TetraminoField} from './TetraminoField'
 
 
@@ -24,13 +26,8 @@ class TetrisGame {
 		this.scoreView = new ScoreView(gl, this.gameDocument, this.renderer)
 		this.tetraminoField = new TetraminoField(this.gameDocument, this.renderer)
 		this.gameOverOverlay = this.createGameOverOverlay()
-		this.gameDocument.addListener({
-			notify: event => {
-				if (event.type === 'gameOver') {
-					this.handleGameOver()
-				}
-			},
-		})
+		this.gameDocument.addListener(this)
+		soundManager.play('main_theme')
 		window.addEventListener('keydown', this.handleKeyDown)
 	}
 
@@ -38,6 +35,15 @@ class TetrisGame {
 		this.nextTetraminoView.render()
 		this.scoreView.render()
 		this.tetraminoField.render()
+	}
+
+	notify(event: GameEvent) {
+		if (event.type === 'gameOver') {
+			this.handleGameOver()
+		}
+		if (event.type === 'someTetraminoFixed') {
+			soundManager.play('fix')
+		}
 	}
 
 	private createGameOverOverlay() {
@@ -79,15 +85,19 @@ class TetrisGame {
 		switch (e.key) {
 			case 'ArrowUp':
 				this.gameDocument.rotateCurrentTetramino()
+				soundManager.play('move')
 				break
 			case 'ArrowLeft':
 				this.gameDocument.moveCurrentTetramino(HORIZONTAL_DIRECTION.LEFT)
+				soundManager.play('move')
 				break
 			case 'ArrowRight':
 				this.gameDocument.moveCurrentTetramino(HORIZONTAL_DIRECTION.RIGHT)
+				soundManager.play('move')
 				break
 			case 'ArrowDown':
 				this.gameDocument.lowerTetramino()
+				soundManager.play('move')
 				break
 			default:
 				break
@@ -96,6 +106,8 @@ class TetrisGame {
 
 	private handleGameOver() {
 		this.isGameActive = false
+		soundManager.stop('main_theme')
+		soundManager.play('game_over')
 		this.gameOverOverlay.style.display = 'flex'
 	}
 
@@ -103,6 +115,7 @@ class TetrisGame {
 		this.gameOverOverlay.style.display = 'none'
 		this.gameDocument.restartGame()
 		this.isGameActive = true
+		soundManager.play('main_theme')
 	}
 }
 

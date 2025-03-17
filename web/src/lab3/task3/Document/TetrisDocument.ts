@@ -263,6 +263,7 @@ class TetrisDocument {
 		})
 		this.updateScore(this.score + this.BONUS_FOR_FIX)
 		this.notify({type: 'tetraminoFieldUpdated'})
+		this.notify({type: 'someTetraminoFixed'})
 		this.clearLines()
 	}
 
@@ -298,8 +299,7 @@ class TetrisDocument {
 				default:
 					points = 200
 			}
-			this.score += points
-			this.clearedLines += clearedLines
+			this.updateScore(this.score + points, this.level, this.linesToLevelUp, this.clearedLines + clearedLines)
 			this.notify({type: 'clearedLines'})
 			this.notify({type: 'tetraminoFieldUpdated'})
 			this.checkLevelUp()
@@ -377,6 +377,9 @@ class TetrisDocument {
 			this.score = score
 		}
 		if (level !== undefined) {
+			if (level > this.level) {
+				this.notify({type: 'levelUp'})
+			}
 			this.level = level
 		}
 		if (linesToLevelUp !== undefined) {
