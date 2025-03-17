@@ -53,6 +53,7 @@ class TetrisDocument {
 	private linesToLevelUp = this.DEFAULT_LINES_TO_LEVEL_UP
 	private dropSpeed = this.DEFAULT_DROP_SPEED
 	private gameOver = false
+	private paused = false
 
 	constructor(
 		private readonly rows: number,
@@ -105,6 +106,21 @@ class TetrisDocument {
 		this.startGame()
 	}
 
+	pause() {
+		if (this.timerId !== undefined) {
+			clearTimeout(this.timerId)
+			this.timerId = undefined
+		}
+		this.paused = true
+	}
+
+	resume() {
+		if (this.paused) {
+			this.paused = false
+			this.gameTickHandler()
+		}
+	}
+
 	private startGame() {
 		if (this.timerId !== undefined) {
 			clearTimeout(this.timerId)
@@ -122,10 +138,9 @@ class TetrisDocument {
 	}
 
 	private gameTickHandler() {
-		if (this.gameOver) {
+		if (this.gameOver || this.paused) {
 			return
 		}
-
 		this.lowerTetramino()
 		this.timerId = window.setTimeout(() => this.gameTickHandler(), this.dropSpeed)
 	}
@@ -282,7 +297,7 @@ class TetrisDocument {
 			}
 		}
 		if (clearedLines) {
-			let points = 0
+			let points
 			switch (clearedLines) {
 				case 1:
 					points = 10
