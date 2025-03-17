@@ -11,7 +11,8 @@ class TetrisGame {
 	private scoreView: ScoreView
 	private tetraminoField: TetraminoField
 	private renderer: Renderer
-	private pauseOverlay: HTMLDivElement
+	private gameOverOverlay: HTMLDivElement
+	private isGameActive = true
 
 	constructor(
 		gl: WebGLRenderingContext,
@@ -22,7 +23,7 @@ class TetrisGame {
 		this.nextTetraminoView = new NextTetraminoView(this.gameDocument, this.renderer)
 		this.scoreView = new ScoreView(gl, this.gameDocument, this.renderer)
 		this.tetraminoField = new TetraminoField(this.gameDocument, this.renderer)
-		this.pauseOverlay = this.createPauseOverlay()
+		this.gameOverOverlay = this.createGameOverOverlay()
 		this.gameDocument.addListener({
 			notify: event => {
 				if (event.type === 'gameOver') {
@@ -39,28 +40,42 @@ class TetrisGame {
 		this.tetraminoField.render()
 	}
 
-	private createPauseOverlay() {
-		const pauseOverlay = document.createElement('div')
-		pauseOverlay.style.position = 'absolute'
-		pauseOverlay.style.top = '50%'
-		pauseOverlay.style.left = '50%'
-		pauseOverlay.style.transform = 'translate(-50%, -50%)'
-		pauseOverlay.style.color = 'white'
-		pauseOverlay.style.fontSize = '48px'
-		pauseOverlay.style.display = 'none'
-		document.body.appendChild(pauseOverlay)
-		return pauseOverlay
+	private createGameOverOverlay() {
+		const overlay = document.createElement('div')
+		overlay.style.position = 'fixed'
+		overlay.style.top = '0'
+		overlay.style.left = '0'
+		overlay.style.width = '100%'
+		overlay.style.height = '100%'
+		overlay.style.backgroundColor = 'rgba(0,0,0,0.7)'
+		overlay.style.display = 'none'
+		overlay.style.flexDirection = 'column'
+		overlay.style.justifyContent = 'center'
+		overlay.style.alignItems = 'center'
+		overlay.style.color = 'white'
+
+		const text = document.createElement('div')
+		text.textContent = 'Game Over!'
+		text.style.fontSize = '48px'
+		text.style.marginBottom = '20px'
+
+		const restartBtn = document.createElement('button')
+		restartBtn.textContent = 'New Game'
+		restartBtn.style.fontSize = '24px'
+		restartBtn.onclick = () => this.restartGame()
+
+		overlay.appendChild(text)
+		overlay.appendChild(restartBtn)
+		document.body.appendChild(overlay)
+		return overlay
 	}
 
+
 	private handleKeyDown = (e: KeyboardEvent) => {
-		// if (e.key === 'p' || e.key === 'P') {
-		// 	this.paused = !this.paused
-		// 	this.pauseOverlay.style.display = this.paused ? 'block' : 'none'
-		// 	return
-		// }
-		// if (this.paused) {
-		// 	return
-		// }
+		if (!this.isGameActive) {
+			return
+		}
+
 		switch (e.key) {
 			case 'ArrowUp':
 				this.gameDocument.rotateCurrentTetramino()
@@ -80,17 +95,14 @@ class TetrisGame {
 	}
 
 	private handleGameOver() {
-		this.showPauseOverlay('Игра окончена!')
-		this.pauseOverlay.style.display = 'block'
+		this.isGameActive = false
+		this.gameOverOverlay.style.display = 'flex'
 	}
 
-	private showPauseOverlay(text: string) {
-		this.pauseOverlay.innerText = text
-		this.pauseOverlay.style.display = 'block'
-		setTimeout(() => {
-			this.pauseOverlay.style.display = 'none'
-			this.gameDocument.restartGame()
-		}, 1000)
+	private restartGame() {
+		this.gameOverOverlay.style.display = 'none'
+		this.gameDocument.restartGame()
+		this.isGameActive = true
 	}
 }
 

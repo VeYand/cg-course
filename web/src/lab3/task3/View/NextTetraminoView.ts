@@ -34,7 +34,6 @@ class NextTetraminoView implements IDocumentListener {
 		this.tiles.forEach(tileData => {
 			if (tileData.tile) {
 				const {color, x, y} = tileData.tile
-				console.log(x, y)
 				this.renderer.drawColoredQuad({x: x + this.offsetX, y: y + this.offsetY}, {width: 1, height: 1}, color)
 			}
 		})
