@@ -38,29 +38,6 @@ class App {
 		this.tetrisGame.render()
 	}
 
-	// render = () => {
-	// 	requestAnimationFrame(this.render)
-	// 	const gl = this.gl
-	//
-	// 	gl.clearColor(0, 0, 0, 1)
-	// 	gl.clear(gl.COLOR_BUFFER_BIT)
-	//
-	// 	const matrixLocation = gl.getUniformLocation(this.program, 'u_matrix')
-	// 	gl.uniformMatrix4fv(matrixLocation, false, this.orthoMatrix)
-	//
-	// 	if (!this.paused) {
-	// 		const now = performance.now()
-	// 		const dropSpeed = this.tetrisGame.document.getDropSpeed()
-	// 		if (now - this.lastUpdateTime > dropSpeed) {
-	// 			console.log('down')
-	// 			this.tetrisGame.document.lowerTetramino()
-	// 			this.lastUpdateTime = now
-	// 		}
-	// 	}
-	//
-	// 	this.tetrisGame.render()
-	// }
-
 	private resizeCanvas = () => {
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight

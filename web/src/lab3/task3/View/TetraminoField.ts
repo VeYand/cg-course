@@ -5,7 +5,7 @@ import {Renderer} from './Renderer'
 
 class TetraminoField implements IDocumentListener {
 	private readonly boardOffsetX: number
-	private readonly boardOffsetY = -10
+	private boardOffsetY = -10
 	private readonly boardWidth: number
 	private readonly boardHeight: number
 
@@ -18,9 +18,11 @@ class TetraminoField implements IDocumentListener {
 	) {
 		gameDocument.addListener(this)
 		const size = gameDocument.getSize()
+		const worldWidth = size.cols + 8 // учитываем панель
 		this.boardWidth = size.cols
 		this.boardHeight = size.rows
-		this.boardOffsetX = -this.boardWidth / 2
+		this.boardOffsetX = -worldWidth / 2
+		this.boardOffsetY = -size.rows / 2
 	}
 
 	render() {

@@ -34,7 +34,6 @@ class TetrisDocument {
 	private currentTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
 	private nextTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
 	private listeners: IDocumentListener[] = []
-	private previousMovingTiles: TileData[] = []
 
 	private readonly DEFAULT_SCORE = 0
 	private readonly DEFAULT_LEVEL = 1
@@ -76,7 +75,6 @@ class TetrisDocument {
 		const rotated = this.currentTetramino.getRotatedVersion()
 		if (this.canRotate(rotated)) {
 			this.currentTetramino.rotate()
-			this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
 			this.notify({type: 'tetraminoFieldUpdated'})
 		}
 	}
@@ -116,7 +114,6 @@ class TetrisDocument {
 		this.gameOver = false
 		this.currentTetramino = this.generateTetramino()
 		this.nextTetramino = this.generateTetramino()
-		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
 		this.notify({type: 'tetraminoFieldUpdated'})
 		this.gameTickHandler()
 	}
@@ -190,7 +187,6 @@ class TetrisDocument {
 		const {dx, dy} = this.parseDirection(direction)
 		if (this.canMove(this.currentTetramino, dx, dy)) {
 			this.currentTetramino.move(dx, dy)
-			this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
 			this.notify({type: 'tetraminoFieldUpdated'})
 		}
 		else if (this.isTetraminoLies()) {
@@ -199,14 +195,14 @@ class TetrisDocument {
 		}
 	}
 
-	private getTetraminoTileData(tetramino: Tetramino): TileData[] {
+	private getTetraminoTileData(tetramino: Tetramino, withOffset = true): TileData[] {
 		const blocks = tetramino.getBlocks()
 		const color = this.getColorForTetramino(tetramino.getType())
 		return blocks.map(block => ({
 			tile: {
 				color,
-				x: tetramino.getPosition().x + block.x,
-				y: tetramino.getPosition().y + block.y,
+				x: (withOffset ? tetramino.getPosition().x : 0) + block.x,
+				y: (withOffset ? tetramino.getPosition().y : 0) + block.y,
 			},
 		}))
 	}
@@ -316,9 +312,8 @@ class TetrisDocument {
 	private spawnNextTetramino() {
 		this.currentTetramino = this.nextTetramino
 		this.currentTetramino.setPosition({x: Math.floor(this.cols / 2) - 1, y: 18})
-		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
-		this.notify({type: 'nextTetramino', data: {newTiles: this.previousMovingTiles}})
 		this.nextTetramino = this.generateTetramino()
+		this.notify({type: 'nextTetramino', data: {newTiles: this.getTetraminoTileData(this.nextTetramino, false)}})
 		if (!this.canMove(this.currentTetramino, 0, 0)) {
 			this.handleGameOver()
 		}
