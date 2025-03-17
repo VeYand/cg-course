@@ -20,7 +20,6 @@ class SoundManager {
 	stop(key: string) {
 		const sound = this.sounds[key]
 		if (sound) {
-			console.log('pause - ', key)
 			sound.pause()
 			sound.currentTime = 0
 		}
