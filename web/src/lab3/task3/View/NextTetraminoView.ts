@@ -4,11 +4,11 @@ import {Color, TetrisDocument, TileData} from '../Document/TetrisDocument'
 import {Renderer} from './Renderer'
 
 class NextTetraminoView implements IDocumentListener {
-	private tiles: TileData[] = []
+	private tiles: TileData[]
 	private readonly offsetXFromField = 2
 	private readonly offsetYFromField = 17
-	private offsetX: number
-	private offsetY: number
+	private readonly offsetX: number
+	private readonly offsetY: number
 	private width = 6
 	private height = 6
 	private readonly BORDER_COLOR: Color = {r: 255, g: 255, b: 255}
@@ -18,6 +18,7 @@ class NextTetraminoView implements IDocumentListener {
 		private readonly renderer: Renderer,
 	) {
 		const filedSize = gameDocument.getSize()
+		this.tiles = gameDocument.getNextTetraminoTiles()
 		this.offsetX = filedSize.cols / 2 + this.offsetXFromField
 		this.offsetY = -filedSize.rows / 2 + this.offsetYFromField
 		gameDocument.addListener(this)

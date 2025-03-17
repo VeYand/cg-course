@@ -7,11 +7,11 @@ import {soundManager} from './SoundManager'
 import {TetraminoField} from './TetraminoField'
 
 class TetrisGame {
-	private gameDocument: TetrisDocument
+	private readonly gameDocument: TetrisDocument
 	private nextTetraminoView: NextTetraminoView
 	private scoreView: ScoreView
 	private tetraminoField: TetraminoField
-	private renderer: Renderer
+	private readonly renderer: Renderer
 	private overlay: HTMLDivElement
 	private overlayText?: HTMLDivElement
 	private overlayButton?: HTMLButtonElement

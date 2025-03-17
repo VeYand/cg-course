@@ -4,13 +4,12 @@ import {TetrisDocument} from '../Document/TetrisDocument'
 import {Renderer} from './Renderer'
 
 class ScoreView implements IDocumentListener {
-	private scoreTexture: WebGLTexture | null = null
-	private offscreenCanvas: HTMLCanvasElement
-	private ctx: CanvasRenderingContext2D
-	private score = 0
-	private level = 1
-	private clearedLines = 0
-	private readonly gameDocument: TetrisDocument
+	private readonly scoreTexture: WebGLTexture | null = null
+	private readonly offscreenCanvas: HTMLCanvasElement
+	private readonly ctx: CanvasRenderingContext2D
+	private score: number
+	private level: number
+	private clearedLines: number
 
 	private x = -9
 	private y = 12
@@ -19,10 +18,13 @@ class ScoreView implements IDocumentListener {
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
-		gameDocument: TetrisDocument,
+		private readonly gameDocument: TetrisDocument,
 		private readonly renderer: Renderer,
 	) {
-		this.gameDocument = gameDocument
+		const scoreData = gameDocument.getScoreData()
+		this.score = scoreData.score
+		this.level = scoreData.level
+		this.clearedLines = scoreData.clearedLines
 		gameDocument.addListener(this)
 		this.offscreenCanvas = document.createElement('canvas')
 		this.offscreenCanvas.width = 256

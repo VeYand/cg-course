@@ -5,7 +5,7 @@ import {Renderer} from './Renderer'
 
 class TetraminoField implements IDocumentListener {
 	private readonly boardOffsetX: number
-	private boardOffsetY = -10
+	private readonly boardOffsetY: number
 	private readonly boardWidth: number
 	private readonly boardHeight: number
 

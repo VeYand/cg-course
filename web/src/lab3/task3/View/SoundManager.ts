@@ -13,17 +13,24 @@ class SoundManager {
 	play(key: string) {
 		const sound = this.sounds[key]
 		if (sound) {
-			sound.currentTime = 0
-			sound.play()
+			this.playSoundWithRetry(sound)
 		}
 	}
 
 	stop(key: string) {
 		const sound = this.sounds[key]
 		if (sound) {
+			console.log('pause - ', key)
 			sound.pause()
 			sound.currentTime = 0
 		}
+	}
+
+	private playSoundWithRetry(sound: HTMLAudioElement) {
+		sound.currentTime = 0
+		sound.play().catch(
+			() => setTimeout(() => this.playSoundWithRetry(sound), 100),
+		)
 	}
 }
 

@@ -29,6 +29,12 @@ enum VERTICAL_DIRECTION {
 
 type DIRECTION = HORIZONTAL_DIRECTION | VERTICAL_DIRECTION
 
+type ScoreData = {
+	score: number,
+	level: number,
+	clearedLines: number,
+}
+
 class TetrisDocument {
 	private field: TileData[][] = []
 	private currentTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
@@ -38,11 +44,11 @@ class TetrisDocument {
 	private readonly DEFAULT_SCORE = 0
 	private readonly DEFAULT_LEVEL = 1
 	private readonly DEFAULT_CLEARED_LINES = 0
-	private readonly DEFAULT_LINES_TO_LEVEL_UP = 10
+	private readonly DEFAULT_LINES_TO_LEVEL_UP = 3
 	private readonly DEFAULT_DROP_SPEED = 600
 	private readonly MAX_DROP_SPEED = 1000
 	private readonly DROP_ACCELERATION_PER_LEVEL = 100
-	private readonly LINES_TO_LEVEL_UP_INCREMENT = 10
+	private readonly LINES_TO_LEVEL_UP_INCREMENT = 3
 	private readonly CLEARED_LINES_BONUS_MULTYPLIER = 10
 	private readonly BONUS_FOR_FIX = 50
 
@@ -92,6 +98,18 @@ class TetrisDocument {
 
 	getLinesToLevelUp() {
 		return this.linesToLevelUp
+	}
+
+	getScoreData(): ScoreData {
+		return {
+			score: this.score,
+			level: this.level,
+			clearedLines: this.clearedLines,
+		}
+	}
+
+	getNextTetraminoTiles(): TileData[] {
+		return this.getTetraminoTileData(this.nextTetramino, false)
 	}
 
 	getCurrentTetraminoTiles(): TileData[] {
@@ -417,6 +435,7 @@ class TetrisDocument {
 export type {
 	TileData,
 	Color,
+	ScoreData,
 }
 
 export {
