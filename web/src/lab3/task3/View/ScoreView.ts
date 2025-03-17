@@ -8,7 +8,7 @@ class ScoreView implements IDocumentListener {
 	private offscreenCanvas: HTMLCanvasElement
 	private ctx: CanvasRenderingContext2D
 	private score = 0
-	private level = 0
+	private level = 1
 	private clearedLines = 0
 	private readonly gameDocument: TetrisDocument
 
@@ -42,7 +42,6 @@ class ScoreView implements IDocumentListener {
 			this.score = event.data.score
 			this.level = event.data.level
 			this.clearedLines = event.data.clearedLines
-			this.render()
 		}
 	}
 

@@ -23,6 +23,13 @@ class Renderer {
 		this.texCoordBuffer = texBuffer
 	}
 
+	drawBorder(x: number, y: number, width: number, height: number, color: Color) {
+		this.drawColoredQuad({x: x - 0.1, y: y - 0.1}, {width: width + 0.2, height: 0.1}, color)
+		this.drawColoredQuad({x: x - 0.1, y: y + height}, {width: width + 0.2, height: 0.1}, color)
+		this.drawColoredQuad({x: x - 0.1, y: y - 0.1}, {width: 0.1, height: height + 0.1}, color)
+		this.drawColoredQuad({x: x + width, y: y - 0.1}, {width: 0.1, height: height + 0.1}, color)
+	}
+
 	drawColoredQuad(position: Position, size: Size, color: Color) {
 		const gl = this.gl
 		const positions = new Float32Array([

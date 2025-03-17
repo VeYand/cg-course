@@ -30,27 +30,42 @@ enum VERTICAL_DIRECTION {
 type DIRECTION = HORIZONTAL_DIRECTION | VERTICAL_DIRECTION
 
 class TetrisDocument {
-	private field: TileData[][]
-	private currentTetramino: Tetramino
-	private nextTetramino: Tetramino
+	private field: TileData[][] = []
+	private currentTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
+	private nextTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
 	private listeners: IDocumentListener[] = []
 	private previousMovingTiles: TileData[] = []
 
-	private score = 0
-	private level = 1
-	private linesCleared = 0
-	private linesToLevelUp = 10
-	private dropSpeed = 1000
+	private readonly DEFAULT_SCORE = 0
+	private readonly DEFAULT_LEVEL = 1
+	private readonly DEFAULT_CLEARED_LINES = 0
+	private readonly DEFAULT_LINES_TO_LEVEL_UP = 10
+	private readonly DEFAULT_DROP_SPEED = 600
+	private readonly MAX_DROP_SPEED = 1000
+	private readonly DROP_ACCELERATION_PER_LEVEL = 100
+	private readonly LINES_TO_LEVEL_UP_INCREMENT = 10
+	private readonly CLEARED_LINES_BONUS_MULTYPLIER = 10
+	private readonly BONUS_FOR_FIX = 50
+
+	private score = this.DEFAULT_SCORE
+	private level = this.DEFAULT_LEVEL
+	private clearedLines = this.DEFAULT_CLEARED_LINES
+	private linesToLevelUp = this.DEFAULT_LINES_TO_LEVEL_UP
+	private dropSpeed = this.DEFAULT_DROP_SPEED
 	private gameOver = false
 
 	constructor(
 		private readonly rows: number,
 		private readonly cols: number,
 	) {
-		this.field = this.createEmptyField()
-		this.currentTetramino = this.generateTetramino()
-		this.nextTetramino = this.generateTetramino()
-		this.previousMovingTiles = this.getTetraminoTileData(this.currentTetramino)
+		this.startGame()
+	}
+
+	getSize() {
+		return {
+			rows: this.rows,
+			cols: this.cols,
+		}
 	}
 
 	addListener(listener: IDocumentListener) {
@@ -93,11 +108,11 @@ class TetrisDocument {
 
 	private startGame() {
 		this.field = this.createEmptyField()
-		this.score = 0
-		this.level = 1
-		this.linesCleared = 0
-		this.linesToLevelUp = 10
-		this.dropSpeed = 1000
+		this.score = this.DEFAULT_SCORE
+		this.level = this.DEFAULT_LEVEL
+		this.clearedLines = this.DEFAULT_CLEARED_LINES
+		this.linesToLevelUp = this.DEFAULT_LINES_TO_LEVEL_UP
+		this.dropSpeed = this.DEFAULT_DROP_SPEED
 		this.gameOver = false
 		this.currentTetramino = this.generateTetramino()
 		this.nextTetramino = this.generateTetramino()
@@ -236,6 +251,7 @@ class TetrisDocument {
 				}
 			}
 		})
+		this.updateScore(this.score + this.BONUS_FOR_FIX)
 		this.notify({type: 'tetraminoFieldUpdated'})
 		this.clearLines()
 	}
@@ -279,7 +295,7 @@ class TetrisDocument {
 					points = 200
 			}
 			this.score += points
-			this.linesCleared += clearedLines.length
+			this.clearedLines += clearedLines.length
 			this.notify({type: 'clearedLines'})
 			this.notify({type: 'tetraminoFieldUpdated'})
 			this.checkLevelUp()
@@ -287,19 +303,12 @@ class TetrisDocument {
 	}
 
 	private checkLevelUp() {
-		if (this.linesCleared >= this.linesToLevelUp) {
+		if (this.clearedLines >= this.linesToLevelUp) {
 			const freeRows = this.field.reduce((count, row) => count + (row.every(cell => cell.tile === undefined) ? 1 : 0), 0)
-			const bonus = freeRows * 10
-			this.score += bonus
+			const bonus = freeRows * this.CLEARED_LINES_BONUS_MULTYPLIER
 			this.field = this.createEmptyField()
-			this.level++
-			this.dropSpeed = Math.max(200, this.dropSpeed - 100)
-			this.linesToLevelUp += 10
-			this.linesCleared = 0
-			this.notify({
-				type: 'scoreUpdated',
-				data: {score: this.score, level: this.level, clearedLines: this.linesCleared},
-			})
+			this.dropSpeed = Math.max(this.MAX_DROP_SPEED, this.dropSpeed - this.DROP_ACCELERATION_PER_LEVEL)
+			this.updateScore(this.score + bonus, this.level + 1, this.linesToLevelUp + this.LINES_TO_LEVEL_UP_INCREMENT, this.DEFAULT_CLEARED_LINES)
 			this.notify({type: 'tetraminoFieldUpdated'})
 		}
 	}
@@ -339,6 +348,25 @@ class TetrisDocument {
 	private handleGameOver() {
 		this.gameOver = true
 		this.notify({type: 'gameOver'})
+	}
+
+	private updateScore(score?: number, level?: number, linesToLevelUp?: number, clearedLines?: number) {
+		if (score !== undefined) {
+			this.score = score
+		}
+		if (level !== undefined) {
+			this.level = level
+		}
+		if (linesToLevelUp !== undefined) {
+			this.linesToLevelUp = linesToLevelUp
+		}
+		if (clearedLines !== undefined) {
+			this.clearedLines = clearedLines
+		}
+		this.notify({
+			type: 'scoreUpdated',
+			data: {score: this.score, level: this.level, clearedLines: this.clearedLines},
+		})
 	}
 
 	private notify(event: GameEvent) {

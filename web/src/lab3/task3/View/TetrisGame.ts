@@ -33,7 +33,7 @@ class TetrisGame {
 		window.addEventListener('keydown', this.handleKeyDown)
 	}
 
-	run() {
+	render() {
 		this.nextTetraminoView.render()
 		this.scoreView.render()
 		this.tetraminoField.render()

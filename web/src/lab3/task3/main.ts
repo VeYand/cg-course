@@ -28,13 +28,14 @@ class App {
 		window.addEventListener('resize', this.resizeCanvas)
 	}
 
-	run = () => {
+	render = () => {
+		requestAnimationFrame(this.render)
 		const gl = this.gl
 		gl.clearColor(0, 0, 0, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		const matrixLocation = gl.getUniformLocation(this.program, 'u_matrix')
 		gl.uniformMatrix4fv(matrixLocation, false, this.orthoMatrix)
-		this.tetrisGame.run()
+		this.tetrisGame.render()
 	}
 
 	// render = () => {
@@ -69,4 +70,4 @@ class App {
 }
 
 const app = new App()
-app.run()
+app.render()
