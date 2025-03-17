@@ -29,7 +29,9 @@ class TetraminoField implements IDocumentListener {
 		this.drawBorders()
 		const field = this.field
 		for (let y = 0; y < field.length; y++) {
+			// @ts-expect-error
 			for (let x = 0; x < field[y].length; x++) {
+				// @ts-expect-error
 				const cell = field[y][x]
 				if (cell?.tile) {
 					const {color} = cell.tile

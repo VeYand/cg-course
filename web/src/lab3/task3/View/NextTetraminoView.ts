@@ -14,9 +14,7 @@ class NextTetraminoView implements IDocumentListener {
 	private readonly BORDER_COLOR: Color = {r: 255, g: 255, b: 255}
 
 	constructor(
-		private readonly gl: WebGLRenderingContext,
-		private readonly program: WebGLProgram,
-		private readonly gameDocument: TetrisDocument,
+		readonly gameDocument: TetrisDocument,
 		private readonly renderer: Renderer,
 	) {
 		const filedSize = gameDocument.getSize()

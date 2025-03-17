@@ -19,8 +19,8 @@ class TetrisGame {
 	) {
 		this.gameDocument = new TetrisDocument(20, 10)
 		this.renderer = new Renderer(gl, program)
-		this.nextTetraminoView = new NextTetraminoView(gl, program, this.gameDocument, this.renderer)
-		this.scoreView = new ScoreView(gl, program, this.gameDocument, this.renderer)
+		this.nextTetraminoView = new NextTetraminoView(this.gameDocument, this.renderer)
+		this.scoreView = new ScoreView(gl, this.gameDocument, this.renderer)
 		this.tetraminoField = new TetraminoField(this.gameDocument, this.renderer)
 		this.pauseOverlay = this.createPauseOverlay()
 		this.gameDocument.addListener({

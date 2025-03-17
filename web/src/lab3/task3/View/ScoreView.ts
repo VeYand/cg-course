@@ -19,7 +19,6 @@ class ScoreView implements IDocumentListener {
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
-		private readonly program: WebGLProgram,
 		gameDocument: TetrisDocument,
 		private readonly renderer: Renderer,
 	) {

@@ -24,6 +24,7 @@ class Trolleybus {
 	private offsetX = 0
 	private offsetY = 0
 
+	// eslint-disable-next-line max-params
 	constructor(
 		private trolleybusPosition: Position,
 		private firstWireY: number,
