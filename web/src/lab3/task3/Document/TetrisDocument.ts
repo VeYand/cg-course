@@ -46,6 +46,7 @@ class TetrisDocument {
 	private readonly CLEARED_LINES_BONUS_MULTYPLIER = 10
 	private readonly BONUS_FOR_FIX = 50
 
+	private timerId?: number
 	private score = this.DEFAULT_SCORE
 	private level = this.DEFAULT_LEVEL
 	private clearedLines = this.DEFAULT_CLEARED_LINES
@@ -105,16 +106,18 @@ class TetrisDocument {
 	}
 
 	private startGame() {
+		if (this.timerId !== undefined) {
+			clearTimeout(this.timerId)
+			this.timerId = undefined
+		}
 		this.field = this.createEmptyField()
-		this.score = this.DEFAULT_SCORE
-		this.level = this.DEFAULT_LEVEL
-		this.clearedLines = this.DEFAULT_CLEARED_LINES
-		this.linesToLevelUp = this.DEFAULT_LINES_TO_LEVEL_UP
 		this.dropSpeed = this.DEFAULT_DROP_SPEED
 		this.gameOver = false
 		this.currentTetramino = this.generateTetramino()
 		this.nextTetramino = this.generateTetramino()
 		this.notify({type: 'tetraminoFieldUpdated'})
+		this.notify({type: 'nextTetramino', data: {newTiles: this.getTetraminoTileData(this.nextTetramino, false)}})
+		this.updateScore(this.DEFAULT_SCORE, this.DEFAULT_LEVEL, this.DEFAULT_LINES_TO_LEVEL_UP, this.DEFAULT_CLEARED_LINES)
 		this.gameTickHandler()
 	}
 
@@ -124,7 +127,7 @@ class TetrisDocument {
 		}
 
 		this.lowerTetramino()
-		setTimeout(() => this.gameTickHandler(), this.dropSpeed)
+		this.timerId = window.setTimeout(() => this.gameTickHandler(), this.dropSpeed)
 	}
 
 	private isTetraminoLies() {
@@ -207,11 +210,22 @@ class TetrisDocument {
 		}))
 	}
 
+	private canSpawn(tetramino: Tetramino): boolean {
+		for (const block of tetramino.getBlocks()) {
+			const x = tetramino.getPosition().x + block.x
+			const y = tetramino.getPosition().y + block.y
+			if (this.field[y]?.[x]?.tile !== undefined) {
+				return false
+			}
+		}
+		return true
+	}
+
 	private canMove(tetramino: Tetramino, dx: number, dy: number): boolean {
 		for (const block of tetramino.getBlocks()) {
 			const newX = tetramino.getPosition().x + block.x + dx
 			const newY = tetramino.getPosition().y + block.y + dy
-			if (newX < 0 || newX >= this.cols || newY < 0 || newY >= this.rows) {
+			if (newX < 0 || newX >= this.cols || newY < 0) {
 				return false
 			}
 			if (this.field[newY]?.[newX]?.tile !== undefined) {
@@ -253,28 +267,22 @@ class TetrisDocument {
 	}
 
 	private clearLines() {
-		const clearedLines: number[] = []
+		let clearedLines = 0
 		for (let y = 0; y < this.rows; y++) {
-			if (this.field[y]?.every(cell => cell.tile !== undefined)) {
-				clearedLines.push(y)
-				for (let x = 0; x < this.cols; x++) {
-					if (this.field[y]?.[x] !== undefined) {
-						// @ts-expect-error
-						this.field[y][x] = {}
-					}
+			// @ts-expect-error
+			if (this.field[y].every(cell => cell.tile !== undefined)) {
+				for (let row = y; row < this.rows - 1; row++) {
+					// @ts-expect-error
+					this.field[row] = this.field[row + 1].map(cell => ({...cell}))
 				}
-				for (let row = y; row > 0; row--) {
-					if (this.field[row] !== undefined) {
-						// @ts-expect-error
-						this.field[row] = this.field[row - 1]?.map(cell => ({...cell}))
-					}
-				}
-				this.field[0] = Array.from({length: this.cols}, () => ({}))
+				this.field[this.rows - 1] = Array.from({length: this.cols}, () => ({}))
+				clearedLines++
+				y--
 			}
 		}
-		if (clearedLines.length) {
+		if (clearedLines) {
 			let points = 0
-			switch (clearedLines.length) {
+			switch (clearedLines) {
 				case 1:
 					points = 10
 					break
@@ -291,12 +299,13 @@ class TetrisDocument {
 					points = 200
 			}
 			this.score += points
-			this.clearedLines += clearedLines.length
+			this.clearedLines += clearedLines
 			this.notify({type: 'clearedLines'})
 			this.notify({type: 'tetraminoFieldUpdated'})
 			this.checkLevelUp()
 		}
 	}
+
 
 	private checkLevelUp() {
 		if (this.clearedLines >= this.linesToLevelUp) {
@@ -310,8 +319,26 @@ class TetrisDocument {
 	}
 
 	private spawnNextTetramino() {
-		this.currentTetramino = this.nextTetramino
-		this.currentTetramino.setPosition({x: Math.floor(this.cols / 2) - 1, y: 18})
+		const currentTetramino = this.nextTetramino
+
+		let spawned = false
+		for (let yOffset = 2; yOffset > 0; yOffset--) {
+			currentTetramino.setPosition({
+				x: Math.floor(this.cols / 2) - 1,
+				y: this.rows - yOffset,
+			})
+			if (this.canSpawn(currentTetramino)) {
+				spawned = true
+				break
+			}
+		}
+
+		if (!spawned) {
+			this.handleGameOver()
+			return
+		}
+
+		this.currentTetramino = currentTetramino
 		this.nextTetramino = this.generateTetramino()
 		this.notify({type: 'nextTetramino', data: {newTiles: this.getTetraminoTileData(this.nextTetramino, false)}})
 		if (!this.canMove(this.currentTetramino, 0, 0)) {

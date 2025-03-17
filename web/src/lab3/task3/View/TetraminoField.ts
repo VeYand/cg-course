@@ -10,6 +10,7 @@ class TetraminoField implements IDocumentListener {
 	private readonly boardHeight: number
 
 	private field: TileData[][] = []
+	private readonly WORLD_COLOR: Color = {r: 0, g: 0, b: 0}
 	private readonly BORDER_COLOR: Color = {r: 255, g: 255, b: 255}
 
 	constructor(
@@ -26,7 +27,6 @@ class TetraminoField implements IDocumentListener {
 	}
 
 	render() {
-		this.drawBorders()
 		const field = this.field
 		for (let y = 0; y < field.length; y++) {
 			// @ts-expect-error
@@ -46,6 +46,7 @@ class TetraminoField implements IDocumentListener {
 				this.renderer.drawColoredQuad({x: x + this.boardOffsetX, y: y + this.boardOffsetY}, {width: 1, height: 1}, color)
 			}
 		})
+		this.drawBorders()
 	}
 
 	notify(event: GameEvent) {
@@ -57,6 +58,7 @@ class TetraminoField implements IDocumentListener {
 
 	private drawBorders() {
 		this.renderer.drawBorder(this.boardOffsetX, this.boardOffsetY, this.boardWidth, this.boardHeight, this.BORDER_COLOR)
+		this.renderer.drawBorder(this.boardOffsetX - 0.1, this.boardOffsetY - 0.1, this.boardWidth + 0.2, this.boardHeight + 0.2, this.WORLD_COLOR, 2)
 	}
 }
 

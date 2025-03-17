@@ -23,11 +23,12 @@ class Renderer {
 		this.texCoordBuffer = texBuffer
 	}
 
-	drawBorder(x: number, y: number, width: number, height: number, color: Color) {
-		this.drawColoredQuad({x: x - 0.1, y: y - 0.1}, {width: width + 0.2, height: 0.1}, color)
-		this.drawColoredQuad({x: x - 0.1, y: y + height}, {width: width + 0.2, height: 0.1}, color)
-		this.drawColoredQuad({x: x - 0.1, y: y - 0.1}, {width: 0.1, height: height + 0.1}, color)
-		this.drawColoredQuad({x: x + width, y: y - 0.1}, {width: 0.1, height: height + 0.1}, color)
+	// eslint-disable-next-line max-params
+	drawBorder(x: number, y: number, width: number, height: number, color: Color, lineWidth = 0.1) {
+		this.drawColoredQuad({x: x - lineWidth, y: y - lineWidth}, {width: width + lineWidth * 2, height: lineWidth}, color)
+		this.drawColoredQuad({x: x - lineWidth, y: y + height}, {width: width + lineWidth * 2, height: lineWidth}, color)
+		this.drawColoredQuad({x: x - lineWidth, y: y - lineWidth}, {width: lineWidth, height: height + lineWidth}, color)
+		this.drawColoredQuad({x: x + width, y: y - lineWidth}, {width: lineWidth, height: height + lineWidth}, color)
 	}
 
 	drawColoredQuad(position: Position, size: Size, color: Color) {
