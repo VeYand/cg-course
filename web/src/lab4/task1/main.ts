@@ -1,12 +1,12 @@
 import './index.css'
-import {Rhombicosidodecahedron} from './Rhombicosidodecahedron/Rhombicosidodecahedron'
+import {SnubCube} from './Rhombicosidodecahedron/SnubCube'
 import {createShaderProgram} from './WebGLUtils'
 
 class App {
 	private readonly canvas: HTMLCanvasElement
 	private readonly gl: WebGLRenderingContext
 	private readonly program: WebGLProgram
-	private rhombicosidodecahedron: Rhombicosidodecahedron
+	private snubCube: SnubCube
 	private then = 0
 	private cubeRotation = 0
 
@@ -21,16 +21,16 @@ class App {
 		}
 		this.gl = gl
 		this.program = createShaderProgram(gl)
-		this.rhombicosidodecahedron = new Rhombicosidodecahedron(gl, this.program)
+		this.snubCube = new SnubCube(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)
 	}
 
 	render = (now: number) => {
-		now *= 0.001 // convert to seconds
+		now *= 0.0001
 		const deltaTime = now - this.then
 		this.then = now
-		this.rhombicosidodecahedron.render(this.cubeRotation)
+		this.snubCube.render(this.cubeRotation)
 		this.cubeRotation += deltaTime
 		requestAnimationFrame(this.render)
 	}

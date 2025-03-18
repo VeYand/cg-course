@@ -1,6 +1,6 @@
 import {mat4} from 'gl-matrix'
 
-class Rhombicosidodecahedron {
+class SnubCube {
 	private positionBuffer: WebGLBuffer | null
 	private colorBuffer: WebGLBuffer | null
 	private indexBuffer: WebGLBuffer | null
@@ -301,5 +301,5 @@ class Rhombicosidodecahedron {
 }
 
 export {
-	Rhombicosidodecahedron,
+	SnubCube,
 }
