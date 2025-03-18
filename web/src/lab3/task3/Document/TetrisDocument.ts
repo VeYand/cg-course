@@ -344,7 +344,6 @@ class TetrisDocument {
 		if (this.clearedLines >= this.linesToLevelUp) {
 			const freeRows = this.field.reduce((count, row) => count + (row.every(cell => cell.tile === undefined) ? 1 : 0), 0)
 			const bonus = freeRows * this.CLEARED_LINES_BONUS_MULTYPLIER
-			this.field = this.createEmptyField()
 			this.dropSpeed = Math.max(this.MAX_DROP_SPEED, this.dropSpeed - this.DROP_ACCELERATION_PER_LEVEL)
 			this.updateScore(this.score + bonus, this.level + 1, this.linesToLevelUp + this.LINES_TO_LEVEL_UP_INCREMENT, this.DEFAULT_CLEARED_LINES)
 			this.notify({type: 'tetraminoFieldUpdated'})
