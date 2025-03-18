@@ -8,7 +8,8 @@
     "lint": "node eslint.mjs && tsc"
   },
   "dependencies": {
-    "file-saver": "^2.0.5"
+    "file-saver": "^2.0.5",
+    "gl-matrix": "^3.4.3"
   },
   "devDependencies": {
     "@types/file-saver": "^2.0.7",
