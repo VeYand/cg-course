@@ -45,18 +45,6 @@ class Renderer {
 		gl.enableVertexAttribArray(posLocation)
 		gl.vertexAttribPointer(posLocation, 2, gl.FLOAT, false, 0, 0)
 
-		const texCoords = new Float32Array([
-			0, 0,
-			1, 0,
-			0, 1,
-			1, 1,
-		])
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW)
-		const texCoordLocation = gl.getAttribLocation(this.program, 'a_texCoord')
-		gl.enableVertexAttribArray(texCoordLocation)
-		gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-
 		const colorLocation = gl.getUniformLocation(this.program, 'u_color')
 		gl.uniform4f(colorLocation, color.r / 255, color.g / 255, color.b / 255, 1)
 		const useTextureLocation = gl.getUniformLocation(this.program, 'u_useTexture')

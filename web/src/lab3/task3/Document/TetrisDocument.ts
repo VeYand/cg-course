@@ -35,6 +35,7 @@ type ScoreData = {
 	clearedLines: number,
 }
 
+// TODO подобрать лучшее название
 class TetrisDocument {
 	private field: TileData[][] = []
 	private currentTetramino: Tetramino = new Tetramino(TETRAMINO_TYPE.I)
@@ -45,12 +46,12 @@ class TetrisDocument {
 	private readonly DEFAULT_LEVEL = 1
 	private readonly DEFAULT_CLEARED_LINES = 0
 	private readonly DEFAULT_LINES_TO_LEVEL_UP = 3
-	private readonly DEFAULT_DROP_SPEED = 600
-	private readonly MAX_DROP_SPEED = 1000
-	private readonly DROP_ACCELERATION_PER_LEVEL = 100
+	private readonly DEFAULT_DROP_SPEED = 600//todo задать лучшее название
+	private readonly MAX_DROP_SPEED = 1000//todo задать лучшее название
+	private readonly DROP_ACCELERATION_PER_LEVEL = 100//todo задать лучшее название
 	private readonly LINES_TO_LEVEL_UP_INCREMENT = 3
-	private readonly CLEARED_LINES_BONUS_MULTYPLIER = 10
-	private readonly BONUS_FOR_FIX = 50
+	private readonly CLEARED_LINES_BONUS_MULTYPLIER = 10//todo задать лучшее название
+	private readonly BONUS_FOR_FIX = 50 //todo задать лучшее название
 
 	private timerId?: number
 	private score = this.DEFAULT_SCORE
@@ -79,7 +80,7 @@ class TetrisDocument {
 		this.listeners.push(listener)
 	}
 
-	rotateCurrentTetramino() {
+	rotateCurrentTetramino() { //todo задать tetromino
 		const rotated = this.currentTetramino.getRotatedVersion()
 		if (this.canRotate(rotated)) {
 			this.currentTetramino.rotate()
@@ -124,6 +125,7 @@ class TetrisDocument {
 		this.startGame()
 	}
 
+	// todo вместо использования таймера внедрить интерфейс таймера, чтобы можно было управлять паузой и так далее
 	pause() {
 		if (this.timerId !== undefined) {
 			clearTimeout(this.timerId)
