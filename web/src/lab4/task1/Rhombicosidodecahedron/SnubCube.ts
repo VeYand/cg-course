@@ -1,15 +1,14 @@
 import {mat4} from 'gl-matrix'
 
 class SnubCube {
-	private positionBuffer: WebGLBuffer | null
-	private colorBuffer: WebGLBuffer | null
-	private indexBuffer: WebGLBuffer | null
+	private readonly positionBuffer: WebGLBuffer | null
+	private readonly colorBuffer: WebGLBuffer | null
+	private readonly indexBuffer: WebGLBuffer | null
 
-
-	private vertexPosition: number
-	private vertexColor: number
-	private projectionMatrix: WebGLUniformLocation | null
-	private modelViewMatrix: WebGLUniformLocation | null
+	private readonly vertexPosition: number
+	private readonly vertexColor: number
+	private readonly projectionMatrix: WebGLUniformLocation | null
+	private readonly modelViewMatrix: WebGLUniformLocation | null
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
@@ -173,7 +172,7 @@ class SnubCube {
 		}
 	}
 
-	private initPositionBuffer() {
+	private initPositionBuffer(): WebGLBuffer | null {
 		const gl = this.gl
 		// Create a buffer for the square's positions.
 		const positionBuffer = gl.createBuffer()
@@ -210,7 +209,7 @@ class SnubCube {
 		return positionBuffer
 	}
 
-	private initColorBuffer() {
+	private initColorBuffer(): WebGLBuffer | null {
 		const gl = this.gl
 
 		const faceColors = [
@@ -224,10 +223,13 @@ class SnubCube {
 
 		// Convert the array of colors into a table for all the vertices.
 
-		let colors = []
+		let colors: number[] = []
 
 		for (let j = 0; j < faceColors.length; ++j) {
 			const c = faceColors[j]
+			if (c === undefined) {
+				continue
+			}
 			// Repeat each color four times for the four vertices of the face
 			colors = colors.concat(c, c, c, c)
 		}
@@ -239,7 +241,7 @@ class SnubCube {
 		return colorBuffer
 	}
 
-	private initIndexBuffer() {
+	private initIndexBuffer(): WebGLBuffer | null {
 		const gl = this.gl
 
 		const indexBuffer = gl.createBuffer()
