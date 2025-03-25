@@ -1,6 +1,6 @@
 import {mat4} from 'gl-matrix'
 
-class SnubCube {
+class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
 	private readonly colorBuffer: WebGLBuffer | null
 	private readonly indexBuffer: WebGLBuffer | null
@@ -362,5 +362,5 @@ class SnubCube {
 }
 
 export {
-	SnubCube,
+	DeltoidalIcositetrahedron,
 }
