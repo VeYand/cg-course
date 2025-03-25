@@ -1,12 +1,12 @@
+import {DeltoidalIcositetrahedron} from './DeltoidalIcositetrahedron/DeltoidalIcositetrahedron'
 import './index.css'
-import {SnubCube} from './Rhombicosidodecahedron/SnubCube'
 import {createShaderProgram} from './WebGLUtils'
 
 class App {
 	private readonly canvas: HTMLCanvasElement
 	private readonly gl: WebGLRenderingContext
 	private readonly program: WebGLProgram
-	private snubCube: SnubCube
+	private deltoidalIcositetrahedron: DeltoidalIcositetrahedron
 	private then = 0
 	private cubeRotation = 0
 
@@ -21,7 +21,7 @@ class App {
 		}
 		this.gl = gl
 		this.program = createShaderProgram(gl)
-		this.snubCube = new SnubCube(gl, this.program)
+		this.deltoidalIcositetrahedron = new DeltoidalIcositetrahedron(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)
 	}
@@ -30,7 +30,7 @@ class App {
 		now *= 0.0001
 		const deltaTime = now - this.then
 		this.then = now
-		this.snubCube.render(this.cubeRotation)
+		this.deltoidalIcositetrahedron.render(this.cubeRotation)
 		this.cubeRotation += deltaTime
 		requestAnimationFrame(this.render)
 	}
