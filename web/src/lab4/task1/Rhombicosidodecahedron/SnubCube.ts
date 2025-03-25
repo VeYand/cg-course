@@ -10,6 +10,9 @@ class SnubCube {
 	private readonly projectionMatrix: WebGLUniformLocation | null
 	private readonly modelViewMatrix: WebGLUniformLocation | null
 
+	private indexCount = 0
+	private positions: number[] = []
+
 	constructor(
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
@@ -30,7 +33,7 @@ class SnubCube {
 
 	render(cubeRotation: number) {
 		const gl = this.gl
-		gl.clearColor(0.0, 0.0, 0.0, 1.0) // Clear to black, fully opaque
+		gl.clearColor(0.0, 0.0, 0.0, 0.1) // Clear to black, fully opaque
 		gl.clearDepth(1.0) // Clear everything
 		gl.enable(gl.DEPTH_TEST) // Enable depth testing
 		gl.depthFunc(gl.LEQUAL) // Near things obscure far things
@@ -112,7 +115,7 @@ class SnubCube {
 		)
 
 		{
-			const vertexCount = 36
+			const vertexCount = this.indexCount
 			const type = gl.UNSIGNED_SHORT
 			const offset = 0
 			gl.drawElements(gl.TRIANGLES, vertexCount, type, offset)
@@ -181,25 +184,53 @@ class SnubCube {
 		// operations to from here out.
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
-		const positions = [
-			// Front face
-			-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0,
+		// https://en.wikipedia.org/wiki/Deltoidal_icositetrahedron
+		const a = Math.sqrt(2) / 2
+		const b = (2 * Math.sqrt(2) + 1) / 7
 
-			// Back face
-			-1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0,
+		const positions: number[] = [
+			// Красные вершины
+			-1, 0, 0,
+			1, 0, 0,
 
-			// Top face
-			-1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0,
+			0, -1, 0,
+			0, 1, 0,
 
-			// Bottom face
-			-1.0, -1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0,
+			0, 0, -1,
+			0, 0, 1,
 
-			// Right face
-			1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0,
+			// Синие вершины
+			0, -a, -a,
+			0, -a, a,
+			0, a, -a,
+			0, a, a,
 
-			// Left face
-			-1.0, -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0,
+			-a, 0, -a,
+			-a, 0, a,
+			a, 0, -a,
+			a, 0, a,
+
+			-a, -a, 0,
+			-a, a, 0,
+			a, -a, 0,
+			a, a, 0,
+
+			// Желтые вершины
+			-b, -b, -b,
+			-b, -b, b,
+			-b, b, -b,
+			-b, b, b,
+			b, -b, -b,
+			b, -b, b,
+			b, b, -b,
+			b, b, b,
 		]
+
+		this.positions = positions.slice()
+
+		for (let i = 2; i < positions.length; i += 3) {
+			console.log((i - 2) / 3, [positions[i - 2], positions[i - 1], positions[i]])
+		}
 
 		// Now pass the list of positions into WebGL to build the
 		// shape. We do this by creating a Float32Array from the
@@ -211,29 +242,11 @@ class SnubCube {
 
 	private initColorBuffer(): WebGLBuffer | null {
 		const gl = this.gl
-
-		const faceColors = [
-			[1.0, 1.0, 1.0, 1.0], // Front face: white
-			[1.0, 0.0, 0.0, 1.0], // Back face: red
-			[0.0, 1.0, 0.0, 1.0], // Top face: green
-			[0.0, 0.0, 1.0, 1.0], // Bottom face: blue
-			[1.0, 1.0, 0.0, 1.0], // Right face: yellow
-			[1.0, 0.0, 1.0, 1.0], // Left face: purple
-		]
-
-		// Convert the array of colors into a table for all the vertices.
-
-		let colors: number[] = []
-
-		for (let j = 0; j < faceColors.length; ++j) {
-			const c = faceColors[j]
-			if (c === undefined) {
-				continue
-			}
-			// Repeat each color four times for the four vertices of the face
-			colors = colors.concat(c, c, c, c)
+		const numVertices = this.positions.length / 3
+		const colors: number[] = []
+		for (let i = 0; i < numVertices; i++) {
+			colors.push(Math.random(), Math.random(), Math.random(), 1.0)
 		}
-
 		const colorBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
@@ -250,54 +263,100 @@ class SnubCube {
 		// This array defines each face as two triangles, using the
 		// indices into the vertex array to specify each triangle's
 		// position.
+		const triangleFaces = [
+			// Нижнее ложе
+			[2, 6, 14], // 6 7 14 16
+			[2, 14, 7],
+			[2, 7, 16],
+			[2, 16, 6],
 
-		const indices = [
-			0,
-			1,
-			2,
-			0,
-			2,
-			3, // front
-			4,
-			5,
-			6,
-			4,
-			6,
-			7, // back
-			8,
-			9,
-			10,
-			8,
-			10,
-			11, // top
-			12,
-			13,
-			14,
-			12,
-			14,
-			15, // bottom
-			16,
-			17,
-			18,
-			16,
-			18,
-			19, // right
-			20,
-			21,
-			22,
-			20,
-			22,
-			23, // left
+			// Верхнее ложе
+			[3, 8, 15], // 8 9 15 17
+			[3, 15, 9],
+			[3, 9, 17],
+			[3, 17, 8],
+
+			// Левое ложе
+			[0, 10, 14], // 10 11 14 15
+			[0, 14, 11],
+			[0, 11, 15],
+			[0, 15, 10],
+
+			// Правое ложе
+			[1, 12, 16], // 12 13 16 17
+			[1, 16, 13],
+			[1, 13, 17],
+			[1, 17, 12],
+
+			// Переднее ложе
+			[5, 7, 11], // 7 9 11 13
+			[5, 11, 9],
+			[5, 9, 13],
+			[5, 13, 7],
+
+			// Заднее ложе
+			[4, 6, 10], // 6 8 10 12
+			[4, 10, 8],
+			[4, 8, 12],
+			[4, 12, 6],
+
+			// Правое верхнее переднее ложе
+			[25, 9, 13], // 9 13 17
+			[25, 13, 17],
+			[25, 17, 9],
+
+			// Левое верхнее переднее ложе
+			[21, 9, 11], // 9 11 15
+			[21, 11, 15],
+			[21, 15, 9],
+
+			// Правое нижнее переднее ложе
+			[23, 7, 13], // 7 13 16
+			[23, 13, 16],
+			[23, 16, 7],
+
+			// Левое нижнее переднее ложе
+			[19, 7, 11], // 7 11 14
+			[19, 11, 14],
+			[19, 14, 7],
+
+			// Правое нижнее заднее ложе
+			[22, 16, 12], // 16 12 6
+			[22, 12, 6],
+			[22, 6, 16],
+
+			// Левое нижнее заднее ложе
+			[18, 14, 10], // 14 10 6
+			[18, 10, 6],
+			[18, 6, 14],
+
+			// Правое верхнее заднее ложе
+			[24, 12, 17], // 12 17 8
+			[24, 17, 8],
+			[24, 8, 12],
+
+			// Левое верхнее заднее ложе
+			[20, 10, 15], // 10 15 8
+			[20, 15, 8],
+			[20, 8, 10],
 		]
 
-		// Now send the element array to GL
+		const allFaces: number[][] = [...triangleFaces]
+		// Преобразуем грани в массив индексов для отрисовки.
+		// Для квадратов разобьём их на 2 треугольника.
+		const indices: number[] = []
+		for (const face of allFaces) {
+			if (face.length === 3) {
+				indices.push(...face)
+			}
+			else if (face.length === 4) {
+				indices.push(face[0], face[1], face[2])
+				indices.push(face[1], face[2], face[3])
+			}
+		}
 
-		gl.bufferData(
-			gl.ELEMENT_ARRAY_BUFFER,
-			new Uint16Array(indices),
-			gl.STATIC_DRAW,
-		)
-
+		this.indexCount = indices.length
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 		return indexBuffer
 	}
 }
