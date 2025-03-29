@@ -15,7 +15,7 @@ class Game {
 	private readonly maze: Maze
 
 	private cameraPos = vec3.fromValues(1, 0.5, 1)
-	private cameraAngle = 0 // поворот вокруг оси Y
+	private cameraAngle = 0
 
 	private moveSpeed = 0.05
 	private turnSpeed = 0.03
@@ -59,9 +59,7 @@ class Game {
 		const viewMatrix = mat4.create()
 		mat4.lookAt(viewMatrix, this.cameraPos, center, up)
 
-		const lightDir = vec3.fromValues(-Math.sin(this.cameraAngle), 0.5, -Math.cos(this.cameraAngle))
-		vec3.normalize(lightDir, lightDir)
-		vec3.scale(lightDir, lightDir, lightIntensity)
+		const lightDir = vec3.fromValues(0, 0, -lightIntensity)
 
 		this.floor.render(viewMatrix, projectionMatrix, lightDir)
 		this.ceiling.render(viewMatrix, projectionMatrix, lightDir)
@@ -69,22 +67,40 @@ class Game {
 	}
 
 	move(direction: DIRECTION) {
+		const newPos = vec3.clone(this.cameraPos)
+
 		switch (direction) {
 			case DIRECTION.FORWARD:
-				this.cameraPos[0] += Math.sin(this.cameraAngle) * this.moveSpeed
-				this.cameraPos[2] += Math.cos(this.cameraAngle) * this.moveSpeed
+				newPos[0] += Math.sin(this.cameraAngle) * this.moveSpeed
+				newPos[2] += Math.cos(this.cameraAngle) * this.moveSpeed
 				break
 			case DIRECTION.BACKWARD:
-				this.cameraPos[0] -= Math.sin(this.cameraAngle) * this.moveSpeed
-				this.cameraPos[2] -= Math.cos(this.cameraAngle) * this.moveSpeed
+				newPos[0] -= Math.sin(this.cameraAngle) * this.moveSpeed
+				newPos[2] -= Math.cos(this.cameraAngle) * this.moveSpeed
 				break
 			case DIRECTION.ROTATE_LEFT:
 				this.cameraAngle += this.turnSpeed
-				break
+				return
 			case DIRECTION.ROTATE_RIGHT:
 				this.cameraAngle -= this.turnSpeed
-				break
+				return
 		}
+
+		if (this.canMoveTo(newPos)) {
+			this.cameraPos = newPos
+		}
+	}
+
+	private canMoveTo(newPos: vec3): boolean {
+		const cellX = Math.floor(newPos[0])
+		const cellZ = Math.floor(newPos[2])
+		const mazeSize = this.maze.getSize().mazeSize
+
+		if (cellX < 0 || cellX >= mazeSize || cellZ < 0 || cellZ >= mazeSize) {
+			return false
+		}
+
+		return this.maze.isWalkable(cellX, cellZ)
 	}
 }
 

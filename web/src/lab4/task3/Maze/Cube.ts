@@ -13,7 +13,7 @@ class Cube {
 	private readonly projectionMatrixLocation: WebGLUniformLocation | null
 	private readonly modelViewMatrixLocation: WebGLUniformLocation | null
 	private readonly normalMatrixLocation: WebGLUniformLocation | null
-	private readonly reverseLightDirection: WebGLUniformLocation | null
+	private readonly lightPosLocation: WebGLUniformLocation | null
 
 	private edgeCount = 0
 	private indicesCount = 0
@@ -39,7 +39,7 @@ class Cube {
 		this.projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix')
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 		this.normalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix')
-		this.reverseLightDirection = gl.getUniformLocation(shaderProgram, 'uReverseLightDirection')
+		this.lightPosLocation = gl.getUniformLocation(shaderProgram, 'uLightDir')
 	}
 
 	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
@@ -88,7 +88,7 @@ class Cube {
 		)
 
 		gl.uniform3fv(
-			this.reverseLightDirection,
+			this.lightPosLocation,
 			lightDir,
 		)
 

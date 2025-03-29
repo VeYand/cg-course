@@ -23,12 +23,12 @@ const fragmentShaderSource = `
 	varying lowp vec4 vColor;
 
 	varying vec3 vNormal;
-	uniform vec3 uReverseLightDirection;
+	uniform vec3 uLightDir;
 	
 	void main(void) {
 	vec3 normal = normalize(vNormal);
 	
-	float light = max(dot(normal, uReverseLightDirection), 0.0);
+	float light = max(dot(normal, normalize(uLightDir)), 0.0);
 	vec3 ambient = 0.2 * vColor.rgb;
 	vec3 diffuse = 0.8 * vColor.rgb * light;
 	gl_FragColor = vec4(ambient + diffuse, vColor.a);

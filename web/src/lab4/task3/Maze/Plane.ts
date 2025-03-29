@@ -13,12 +13,13 @@ class Plane {
 	private projectionMatrixLocation: WebGLUniformLocation | null
 	private modelViewMatrixLocation: WebGLUniformLocation | null
 	private normalMatrixLocation: WebGLUniformLocation | null
-	private reverseLightDirection: WebGLUniformLocation | null
+	private lightPosLocation: WebGLUniformLocation | null
 
 	private edgeCount = 0
 	private indicesCount = 0
 	private positions: number[] = []
 
+	// eslint-disable-next-line max-params
 	constructor(
 		private gl: WebGLRenderingContext,
 		private shaderProgram: WebGLProgram,
@@ -40,7 +41,7 @@ class Plane {
 		this.projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix')
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 		this.normalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix')
-		this.reverseLightDirection = gl.getUniformLocation(shaderProgram, 'uReverseLightDirection')
+		this.lightPosLocation = gl.getUniformLocation(shaderProgram, 'uLightDir')
 	}
 
 	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
@@ -88,7 +89,7 @@ class Plane {
 		)
 
 		gl.uniform3fv(
-			this.reverseLightDirection,
+			this.lightPosLocation,
 			lightDir,
 		)
 

@@ -15,9 +15,9 @@ class Maze {
 		this.initCubes()
 	}
 
-	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
+	render(viewMatrix: mat4, projectionMatrix: mat4, lightPos: vec3) {
 		for (const cube of this.cubes) {
-			cube.render(viewMatrix, projectionMatrix, lightDir)
+			cube.render(viewMatrix, projectionMatrix, lightPos)
 		}
 	}
 
@@ -26,6 +26,11 @@ class Maze {
 			cellSize: this.CELL_SIZE,
 			mazeSize: this.MAZE_SIZE,
 		}
+	}
+
+	isWalkable(x: number, z: number): boolean {
+		// @ts-expect-error
+		return this.maze[z][x] === 0
 	}
 
 	private generateMaze() {
