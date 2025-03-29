@@ -1,15 +1,20 @@
-import {mat4, ReadonlyVec3} from 'gl-matrix'
+import {mat3, mat4, ReadonlyVec3, vec3} from 'gl-matrix'
 
 class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
 	private readonly colorBuffer: WebGLBuffer | null
 	private readonly edgeBuffer: WebGLBuffer | null
 	private readonly indexBuffer: WebGLBuffer | null
+	private readonly normalBuffer: WebGLBuffer | null
 
 	private readonly vertexPosition: number
 	private readonly vertexColor: number
 	private readonly projectionMatrix: WebGLUniformLocation | null
 	private readonly modelViewMatrix: WebGLUniformLocation | null
+	private readonly normalMatrixLocation: WebGLUniformLocation | null
+	private readonly normalLocation: number
+
+	private readonly reverseLightDirection: WebGLUniformLocation | null
 
 	private edgeCount = 0
 	private indexCount = 0
@@ -24,6 +29,7 @@ class DeltoidalIcositetrahedron {
 		this.colorBuffer = buffers.color
 		this.indexBuffer = buffers.indices
 		this.edgeBuffer = buffers.edges
+		this.normalBuffer = buffers.normal
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
 		this.vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor')
@@ -32,9 +38,13 @@ class DeltoidalIcositetrahedron {
 			'uProjectionMatrix',
 		)
 		this.modelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
+		this.normalLocation = gl.getAttribLocation(shaderProgram, 'aNormal')
+		this.normalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix')
+
+		this.reverseLightDirection = gl.getUniformLocation(shaderProgram, 'uReverseLightDirection')
 	}
 
-	render(cameraRotationX: number, cameraRotationY: number) {
+	render(cameraRotationX: number, cameraRotationY: number, lightIntensity: number) {
 		const gl = this.gl
 		gl.clearColor(0.0, 0.0, 0.0, 0.1) // Clear to black, fully opaque
 		gl.clearDepth(1.0) // Clear everything
@@ -75,11 +85,16 @@ class DeltoidalIcositetrahedron {
 		const modelViewMatrix = mat4.create()
 		mat4.lookAt(modelViewMatrix, eye, center, up)
 
+		const normalMatrix = mat3.create()
+		mat3.normalFromMat4(normalMatrix, modelViewMatrix)
+
 		// Tell WebGL how to pull out the positions from the position
 		// buffer into the vertexPosition attribute.
 		this.setPositionAttribute()
 
 		this.setColorAttribute()
+
+		this.setNormalAttribute()
 
 		// Tell WebGL which indices to use to index the vertices
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
@@ -88,6 +103,11 @@ class DeltoidalIcositetrahedron {
 		gl.useProgram(this.shaderProgram)
 
 		// Set the shader uniforms
+		gl.uniformMatrix3fv(
+			this.normalMatrixLocation,
+			false,
+			normalMatrix,
+		)
 		gl.uniformMatrix4fv(
 			this.projectionMatrix,
 			false,
@@ -98,6 +118,12 @@ class DeltoidalIcositetrahedron {
 			false,
 			modelViewMatrix,
 		)
+
+		// set the light direction.
+		const lightX = -1
+		const lightY = 1
+		const lightZ = 1
+		gl.uniform3fv(this.reverseLightDirection, [lightX * lightIntensity, lightY * lightIntensity, lightZ * lightIntensity])
 
 		// Отрисовка граней
 		{
@@ -157,17 +183,38 @@ class DeltoidalIcositetrahedron {
 		gl.enableVertexAttribArray(this.vertexColor)
 	}
 
+	private setNormalAttribute() {
+		const gl = this.gl
+		const numComponents = 3
+		const type = gl.FLOAT // the data in the buffer is 32bit floats
+		const normalize = false // don't normalize
+		const stride = 0 // how many bytes to get from one set of values to the next
+		const offset = 0 // how many bytes inside the buffer to start from
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer)
+		gl.vertexAttribPointer(
+			this.normalLocation,
+			numComponents,
+			type,
+			normalize,
+			stride,
+			offset,
+		)
+		gl.enableVertexAttribArray(this.normalLocation)
+	}
+
 	private initBuffers() {
 		const positionBuffer = this.initPositionBuffer()
 		const colorBuffer = this.initColorBuffer()
 		const indexBuffer = this.initIndexBuffer()
 		const edgeBuffer = this.initEdgeBuffer()
+		const normal = this.initNormalBuffer()
 
 		return {
 			position: positionBuffer,
 			color: colorBuffer,
 			indices: indexBuffer,
 			edges: edgeBuffer,
+			normal: normal,
 		}
 	}
 
@@ -180,48 +227,7 @@ class DeltoidalIcositetrahedron {
 		// operations to from here out.
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
-		// https://en.wikipedia.org/wiki/Deltoidal_icositetrahedron
-		const a = Math.sqrt(2) / 2
-		const b = (2 * Math.sqrt(2) + 1) / 7
-
-		const positions: number[] = [
-			// Красные вершины
-			-1, 0, 0,
-			1, 0, 0,
-
-			0, -1, 0,
-			0, 1, 0,
-
-			0, 0, -1,
-			0, 0, 1,
-
-			// Синие вершины
-			0, -a, -a,
-			0, -a, a,
-			0, a, -a,
-			0, a, a,
-
-			-a, 0, -a,
-			-a, 0, a,
-			a, 0, -a,
-			a, 0, a,
-
-			-a, -a, 0,
-			-a, a, 0,
-			a, -a, 0,
-			a, a, 0,
-
-			// Желтые вершины
-			-b, -b, -b,
-			-b, -b, b,
-			-b, b, -b,
-			-b, b, b,
-			b, -b, -b,
-			b, -b, b,
-			b, b, -b,
-			b, b, b,
-		]
-
+		const positions = this.getPositions()
 		this.positions = positions.slice()
 
 		for (let i = 2; i < positions.length; i += 3) {
@@ -286,12 +292,6 @@ class DeltoidalIcositetrahedron {
 			if (face.length === 3) {
 				indices.push(...face)
 			}
-			else if (face.length === 4) {
-				// @ts-expect-error
-				indices.push(face[0], face[1], face[2])
-				// @ts-expect-error
-				indices.push(face[1], face[2], face[3])
-			}
 		}
 
 		this.indexCount = indices.length
@@ -299,81 +299,187 @@ class DeltoidalIcositetrahedron {
 		return indexBuffer
 	}
 
+	private initNormalBuffer(): WebGLBuffer | null {
+		const gl = this.gl
+		const positions = this.getPositions()
+		const normals = this.computeNormals(positions, this.getTriangleFaces())
+		const normalBuffer = gl.createBuffer()
+		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
+		return normalBuffer
+	}
+
+	private computeNormals(positions: number[], faces: number[][]): number[] {
+		const numVertices = positions.length / 3
+		const normals = new Array(numVertices * 3).fill(1)
+
+		faces.forEach(face => {
+			if (face.length === 3) {
+				// @ts-expect-error
+				const idx0 = face[0] * 3
+				// @ts-expect-error
+				const idx1 = face[1] * 3
+				// @ts-expect-error
+				const idx2 = face[2] * 3
+
+				// @ts-expect-error
+				const p0 = vec3.fromValues(positions[idx0], positions[idx0 + 1], positions[idx0 + 2])
+				// @ts-expect-error
+				const p1 = vec3.fromValues(positions[idx1], positions[idx1 + 1], positions[idx1 + 2])
+				// @ts-expect-error
+				const p2 = vec3.fromValues(positions[idx2], positions[idx2 + 1], positions[idx2 + 2])
+
+				const v1 = vec3.create()
+				const v2 = vec3.create()
+				vec3.subtract(v1, p1, p0)
+				vec3.subtract(v2, p2, p0)
+
+				const normal = vec3.create()
+				vec3.cross(normal, v1, v2)
+				vec3.normalize(normal, normal)
+
+				for (const idx of face) {
+					normals[idx * 3] += normal[0]
+					normals[idx * 3 + 1] += normal[1]
+					normals[idx * 3 + 2] += normal[2]
+				}
+			}
+		})
+
+		for (let i = 0; i < numVertices; i++) {
+			const nx = normals[i * 3]
+			const ny = normals[i * 3 + 1]
+			const nz = normals[i * 3 + 2]
+			const len = Math.hypot(nx, ny, nz)
+			if (len > 0) {
+				normals[i * 3] = nx / len
+				normals[i * 3 + 1] = ny / len
+				normals[i * 3 + 2] = nz / len
+			}
+		}
+
+		return normals
+	}
+
+	private getPositions(): number[] {
+		// https://en.wikipedia.org/wiki/Deltoidal_icositetrahedron
+		const a = Math.sqrt(2) / 2
+		const b = (2 * Math.sqrt(2) + 1) / 7
+
+		return [
+			// Красные вершины
+			-1, 0, 0,
+			1, 0, 0,
+
+			0, -1, 0,
+			0, 1, 0,
+
+			0, 0, -1,
+			0, 0, 1,
+
+			// Синие вершины
+			0, -a, -a,
+			0, -a, a,
+			0, a, -a,
+			0, a, a,
+
+			-a, 0, -a,
+			-a, 0, a,
+			a, 0, -a,
+			a, 0, a,
+
+			-a, -a, 0,
+			-a, a, 0,
+			a, -a, 0,
+			a, a, 0,
+
+			// Желтые вершины
+			-b, -b, -b,
+			-b, -b, b,
+			-b, b, -b,
+			-b, b, b,
+			b, -b, -b,
+			b, -b, b,
+			b, b, -b,
+			b, b, b,
+		]
+	}
+
 	private getTriangleFaces(): number[][] {
 		return [
 			// Нижнее ложе
-			[2, 6, 14], // 6 7 14 16
-			[2, 14, 7],
-			[2, 7, 16],
-			[2, 16, 6],
+			[2, 7, 14],
+			[2, 16, 7],
+			[2, 14, 6],
+			[2, 6, 16],
 
 			// Верхнее ложе
-			[3, 8, 15], // 8 9 15 17
+			[3, 8, 15],
 			[3, 15, 9],
 			[3, 9, 17],
 			[3, 17, 8],
 
 			// Левое ложе
-			[0, 10, 14], // 10 11 14 15
+			[0, 10, 14],
 			[0, 14, 11],
 			[0, 11, 15],
 			[0, 15, 10],
 
 			// Правое ложе
-			[1, 12, 16], // 12 13 16 17
-			[1, 16, 13],
-			[1, 13, 17],
-			[1, 17, 12],
+			[1, 13, 16],
+			[1, 17, 13],
+			[1, 16, 12],
+			[1, 12, 17],
 
 			// Переднее ложе
-			[5, 7, 11], // 7 9 11 13
-			[5, 11, 9],
-			[5, 9, 13],
-			[5, 13, 7],
+			[5, 11, 7],
+			[5, 9, 11],
+			[5, 13, 9],
+			[5, 7, 13],
 
 			// Заднее ложе
-			[4, 6, 10], // 6 8 10 12
+			[4, 6, 10],
 			[4, 10, 8],
 			[4, 8, 12],
 			[4, 12, 6],
 
 			// Правое верхнее переднее ложе
-			[25, 9, 13], // 9 13 17
+			[25, 9, 13],
 			[25, 13, 17],
 			[25, 17, 9],
 
 			// Левое верхнее переднее ложе
-			[21, 9, 11], // 9 11 15
-			[21, 11, 15],
-			[21, 15, 9],
+			[21, 11, 9],
+			[21, 15, 11],
+			[21, 9, 15],
 
 			// Правое нижнее переднее ложе
-			[23, 7, 13], // 7 13 16
-			[23, 13, 16],
-			[23, 16, 7],
+			[23, 13, 7],
+			[23, 16, 13],
+			[23, 7, 16],
 
 			// Левое нижнее переднее ложе
-			[19, 7, 11], // 7 11 14
+			[19, 7, 11],
 			[19, 11, 14],
 			[19, 14, 7],
 
 			// Правое нижнее заднее ложе
-			[22, 16, 12], // 16 12 6
-			[22, 12, 6],
-			[22, 6, 16],
+			[22, 12, 16],
+			[22, 6, 12],
+			[22, 16, 6],
 
 			// Левое нижнее заднее ложе
-			[18, 14, 10], // 14 10 6
+			[18, 14, 10],
 			[18, 10, 6],
 			[18, 6, 14],
 
 			// Правое верхнее заднее ложе
-			[24, 12, 17], // 12 17 8
-			[24, 17, 8],
-			[24, 8, 12],
+			[24, 17, 12],
+			[24, 8, 17],
+			[24, 12, 8],
 
 			// Левое верхнее заднее ложе
-			[20, 10, 15], // 10 15 8
+			[20, 10, 15],
 			[20, 15, 8],
 			[20, 8, 10],
 		]

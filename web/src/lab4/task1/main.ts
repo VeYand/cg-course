@@ -1,5 +1,6 @@
 import {DeltoidalIcositetrahedron} from './DeltoidalIcositetrahedron/DeltoidalIcositetrahedron'
 import './index.css'
+import {Settings} from './Settings/Settings'
 import {createShaderProgram} from './WebGLUtils'
 
 class App {
@@ -14,7 +15,14 @@ class App {
 	private cameraRotationX = 0
 	private cameraRotationY = 0
 
+	private lightIntensity = 1
+
 	constructor() {
+		const settings = new Settings(intensity => {
+			this.lightIntensity = intensity
+		})
+		document.querySelector('#root')?.appendChild(settings.getElement())
+
 		this.canvas = document.createElement('canvas')
 		document.body.appendChild(this.canvas)
 		this.canvas.width = window.innerWidth
@@ -36,7 +44,7 @@ class App {
 	}
 
 	render = () => {
-		this.deltoidalIcositetrahedron.render(this.cameraRotationX, this.cameraRotationY)
+		this.deltoidalIcositetrahedron.render(this.cameraRotationX, this.cameraRotationY, this.lightIntensity)
 		requestAnimationFrame(this.render)
 	}
 
