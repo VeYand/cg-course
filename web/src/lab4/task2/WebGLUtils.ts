@@ -27,8 +27,9 @@ const fragmentShaderSource = `
 	
     void main(void) {
       vec3 normal = normalize(vNormal);
-	  float light = dot(normal, uReverseLightDirection);
-	  gl_FragColor = vColor;
+      normal = gl_FrontFacing ? normal : -normal;
+      float light = max(dot(normal, uReverseLightDirection), 0.0);
+      gl_FragColor = vColor;
       gl_FragColor.rgb *= light;
     }
 `

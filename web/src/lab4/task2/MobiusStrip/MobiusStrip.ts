@@ -122,10 +122,10 @@ class MobiusStrip {
 		)
 
 		// set the light direction.
-		const lightX = -1
-		const lightY = 1
-		const lightZ = 1
-		gl.uniform3fv(this.reverseLightDirection, [lightX * lightIntensity, lightY * lightIntensity, lightZ * lightIntensity])
+		const lightDir = vec3.fromValues(-1, 1, 1)
+		vec3.normalize(lightDir, lightDir)
+		vec3.scale(lightDir, lightDir, lightIntensity)
+		gl.uniform3fv(this.reverseLightDirection, lightDir)
 
 		// Отрисовка граней
 		{
@@ -292,59 +292,45 @@ class MobiusStrip {
 
 	private initNormalBuffer(): WebGLBuffer | null {
 		const gl = this.gl
-		const triangleFaces = this.getTriangleFaces()
-		const normals = this.computeNormals(this.positions, triangleFaces)
+		const normals = this.computeNormals()
 		const normalBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
 		return normalBuffer
 	}
 
-	private computeNormals(positions: number[], faces: number[][]): number[] {
-		const numVertices = positions.length / 3
-		const normals = new Array(numVertices * 3).fill(0)
-		faces.forEach(face => {
-			if (face.length === 3) {
-				// @ts-expect-error
-				const idx0 = face[0] * 3
-				// @ts-expect-error
-				const idx1 = face[1] * 3
-				// @ts-expect-error
-				const idx2 = face[2] * 3
+	private computeNormals(): number[] {
+		const normals: number[] = []
+		const uMin = 0
+		const uMax = 2 * Math.PI
+		const vMin = -1
+		const vMax = 1
 
-				// @ts-expect-error
-				const p0 = vec3.fromValues(positions[idx0], positions[idx0 + 1], positions[idx0 + 2])
-				// @ts-expect-error
-				const p1 = vec3.fromValues(positions[idx1], positions[idx1 + 1], positions[idx1 + 2])
-				// @ts-expect-error
-				const p2 = vec3.fromValues(positions[idx2], positions[idx2 + 1], positions[idx2 + 2])
+		for (let i = 0; i <= this.segmentsU; i++) {
+			const u = uMin + ((uMax - uMin) * i) / this.segmentsU
+			const cosU = Math.cos(u)
+			const sinU = Math.sin(u)
+			const cosU2 = Math.cos(u / 2)
+			const sinU2 = Math.sin(u / 2)
 
-				const v1 = vec3.create()
-				const v2 = vec3.create()
-				vec3.subtract(v1, p1, p0)
-				vec3.subtract(v2, p2, p0)
+			for (let j = 0; j <= this.segmentsV; j++) {
+				const v = vMin + ((vMax - vMin) * j) / this.segmentsV
 
-				const normal = vec3.create()
-				vec3.cross(normal, v1, v2)
+				const factor = 1 + (v / 2) * cosU2
+				const dx_du = -factor * sinU - (v * sinU2 * cosU) / 4
+				const dy_du = -(v * cosU2) / 4
+				const dz_du = factor * cosU - (v * sinU2 * sinU) / 4
+
+				const dFactor_dv = cosU2 / 2
+				const dx_dv = dFactor_dv * cosU
+				const dy_dv = -Math.sin(u / 2) / 2
+				const dz_dv = dFactor_dv * sinU
+
+				const du = vec3.fromValues(dx_du, dy_du, dz_du)
+				const dv = vec3.fromValues(dx_dv, dy_dv, dz_dv)
+				const normal = vec3.cross(vec3.create(), du, dv)
 				vec3.normalize(normal, normal)
-
-				face.forEach(idx => {
-					normals[idx * 3] += normal[0]
-					normals[idx * 3 + 1] += normal[1]
-					normals[idx * 3 + 2] += normal[2]
-				})
-			}
-		})
-
-		for (let i = 0; i < numVertices; i++) {
-			const nx = normals[i * 3]
-			const ny = normals[i * 3 + 1]
-			const nz = normals[i * 3 + 2]
-			const len = Math.hypot(nx, ny, nz)
-			if (len > 0) {
-				normals[i * 3] = nx / len
-				normals[i * 3 + 1] = ny / len
-				normals[i * 3 + 2] = nz / len
+				normals.push(...normal)
 			}
 		}
 
@@ -363,12 +349,12 @@ class MobiusStrip {
 
 		for (let i = 0; i <= this.segmentsU; i++) {
 			const u = uMin + ((uMax - uMin) * i) / this.segmentsU
+			const cosU = Math.cos(u)
+			const sinU = Math.sin(u)
+			const cosU2 = Math.cos(u / 2)
+			const sinU2 = Math.sin(u / 2)
 			for (let j = 0; j <= this.segmentsV; j++) {
 				const v = vMin + ((vMax - vMin) * j) / this.segmentsV
-				const cosU = Math.cos(u)
-				const sinU = Math.sin(u)
-				const cosU2 = Math.cos(u / 2)
-				const sinU2 = Math.sin(u / 2)
 				const factor = 1 + (v / 2) * cosU2
 				const x = factor * cosU
 				// const y = factor * sinU
