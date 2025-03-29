@@ -3,6 +3,7 @@ import {mat4} from 'gl-matrix'
 class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
 	private readonly colorBuffer: WebGLBuffer | null
+	private readonly edgeBuffer: WebGLBuffer | null
 	private readonly indexBuffer: WebGLBuffer | null
 
 	private readonly vertexPosition: number
@@ -10,6 +11,7 @@ class DeltoidalIcositetrahedron {
 	private readonly projectionMatrix: WebGLUniformLocation | null
 	private readonly modelViewMatrix: WebGLUniformLocation | null
 
+	private edgeCount = 0
 	private indexCount = 0
 	private positions: number[] = []
 
@@ -21,6 +23,7 @@ class DeltoidalIcositetrahedron {
 		this.positionBuffer = buffers.position
 		this.colorBuffer = buffers.color
 		this.indexBuffer = buffers.indices
+		this.edgeBuffer = buffers.edges
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
 		this.vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor')
@@ -114,11 +117,20 @@ class DeltoidalIcositetrahedron {
 			modelViewMatrix,
 		)
 
+		// Отрисовка граней
 		{
 			const vertexCount = this.indexCount
 			const type = gl.UNSIGNED_SHORT
 			const offset = 0
 			gl.drawElements(gl.TRIANGLES, vertexCount, type, offset)
+		}
+
+		// Отрисовка рёбер
+		{
+			gl.disableVertexAttribArray(this.vertexColor)
+			gl.vertexAttrib4f(this.vertexColor, 0, 0, 0, 1)
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.edgeBuffer)
+			gl.drawElements(gl.LINES, this.edgeCount, gl.UNSIGNED_SHORT, 0)
 		}
 	}
 
@@ -167,11 +179,13 @@ class DeltoidalIcositetrahedron {
 		const positionBuffer = this.initPositionBuffer()
 		const colorBuffer = this.initColorBuffer()
 		const indexBuffer = this.initIndexBuffer()
+		const edgeBuffer = this.initEdgeBuffer()
 
 		return {
 			position: positionBuffer,
 			color: colorBuffer,
 			indices: indexBuffer,
+			edges: edgeBuffer,
 		}
 	}
 
@@ -254,6 +268,22 @@ class DeltoidalIcositetrahedron {
 		return colorBuffer
 	}
 
+	private initEdgeBuffer(): WebGLBuffer | null {
+		const gl = this.gl
+		const edgeIndices: number[] = []
+		this.getLineFaces().forEach(item => {
+			if (item.length > 1) {
+				edgeIndices.push(item[0], item[1])
+			}
+		})
+
+		const edgeBuffer = gl.createBuffer()
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBuffer)
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(edgeIndices), gl.STATIC_DRAW)
+		this.edgeCount = edgeIndices.length
+		return edgeBuffer
+	}
+
 	private initIndexBuffer(): WebGLBuffer | null {
 		const gl = this.gl
 
@@ -263,7 +293,29 @@ class DeltoidalIcositetrahedron {
 		// This array defines each face as two triangles, using the
 		// indices into the vertex array to specify each triangle's
 		// position.
-		const triangleFaces = [
+		const triangleFaces = this.getTriangleFaces()
+
+		const allFaces: number[][] = [...triangleFaces]
+		// Преобразуем грани в массив индексов для отрисовки.
+		// Для квадратов разобьём их на 2 треугольника.
+		const indices: number[] = []
+		for (const face of allFaces) {
+			if (face.length === 3) {
+				indices.push(...face)
+			}
+			else if (face.length === 4) {
+				indices.push(face[0], face[1], face[2])
+				indices.push(face[1], face[2], face[3])
+			}
+		}
+
+		this.indexCount = indices.length
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+		return indexBuffer
+	}
+
+	private getTriangleFaces(): number[][] {
+		return [
 			// Нижнее ложе
 			[2, 6, 14], // 6 7 14 16
 			[2, 14, 7],
@@ -340,24 +392,62 @@ class DeltoidalIcositetrahedron {
 			[20, 15, 8],
 			[20, 8, 10],
 		]
+	}
 
-		const allFaces: number[][] = [...triangleFaces]
-		// Преобразуем грани в массив индексов для отрисовки.
-		// Для квадратов разобьём их на 2 треугольника.
-		const indices: number[] = []
-		for (const face of allFaces) {
-			if (face.length === 3) {
-				indices.push(...face)
-			}
-			else if (face.length === 4) {
-				indices.push(face[0], face[1], face[2])
-				indices.push(face[1], face[2], face[3])
-			}
-		}
+	private getLineFaces(): number[][] {
+		return [
+			[0, 15],
+			[0, 14],
+			[0, 10],
+			[0, 11],
+			[15, 20],
+			[15, 21],
+			[15, 3],
+			[14, 19],
+			[14, 18],
+			[14, 2],
+			[21, 9],
+			[21, 11],
+			[20, 8],
+			[20, 10],
+			[19, 11],
+			[19, 7],
+			[18, 10],
+			[18, 6],
+			[11, 5],
+			[10, 4],
 
-		this.indexCount = indices.length
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-		return indexBuffer
+			[1, 17],
+			[1, 16],
+			[1, 13],
+			[1, 12],
+			[17, 3],
+			[17, 25],
+			[17, 24],
+			[16, 2],
+			[16, 23],
+			[16, 22],
+			[25, 9],
+			[25, 13],
+			[24, 8],
+			[24, 12],
+			[23, 7],
+			[23, 13],
+			[22, 6],
+			[22, 12],
+			[13, 5],
+			[12, 4],
+			[22, 12],
+
+			[9, 3],
+			[9, 5],
+			[8, 3],
+			[8, 4],
+			[7, 2],
+			[7, 5],
+			[6, 2],
+			[6, 4],
+		]
 	}
 }
 
