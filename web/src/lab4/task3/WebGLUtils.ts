@@ -20,18 +20,19 @@ const vertexShaderSource = `
 const fragmentShaderSource = `
 	precision mediump float;
 
-    varying lowp vec4 vColor;
+	varying lowp vec4 vColor;
 
 	varying vec3 vNormal;
 	uniform vec3 uReverseLightDirection;
 	
-    void main(void) {
-      vec3 normal = normalize(vNormal);
-      normal = gl_FrontFacing ? normal : -normal;
-      float light = max(dot(normal, uReverseLightDirection), 0.0);
-      gl_FragColor = vColor;
-      gl_FragColor.rgb *= light;
-    }
+	void main(void) {
+	vec3 normal = normalize(vNormal);
+	
+	float light = max(dot(normal, uReverseLightDirection), 0.0);
+	vec3 ambient = 0.2 * vColor.rgb;
+	vec3 diffuse = 0.8 * vColor.rgb * light;
+	gl_FragColor = vec4(ambient + diffuse, vColor.a);
+}
 `
 
 const compileShader = (gl: WebGLRenderingContext, type: number, source: string): WebGLShader => {

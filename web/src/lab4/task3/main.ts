@@ -1,5 +1,5 @@
 import './index.css'
-import {Maze} from './Maze/Maze'
+import {DIRECTION, Game} from './Maze/Game'
 import {Settings} from './Settings/Settings'
 import {createShaderProgram} from './WebGLUtils'
 
@@ -7,18 +7,12 @@ class App {
 	private readonly canvas: HTMLCanvasElement
 	private readonly gl: WebGLRenderingContext
 	private readonly program: WebGLProgram
-	private maze: Maze
-
-	private isMouseDown = false
-	private lastMouseX = 0
-	private lastMouseY = 0
-	private cameraRotationX = 0
-	private cameraRotationY = 0
+	private game: Game
 
 	private lightIntensity = 1
 
 	constructor() {
-		const settings = new Settings(intensity => {
+		const settings = new Settings((intensity: number) => {
 			this.lightIntensity = intensity
 		})
 		document.querySelector('#root')?.appendChild(settings.getElement())
@@ -33,18 +27,14 @@ class App {
 		}
 		this.gl = gl
 		this.program = createShaderProgram(gl)
-		this.maze = new Maze(gl, this.program)
+		this.game = new Game(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)
-
-		this.canvas.addEventListener('mousedown', this.onMouseDown)
-		this.canvas.addEventListener('mousemove', this.onMouseMove)
-		this.canvas.addEventListener('mouseup', this.onMouseUp)
-		this.canvas.addEventListener('mouseleave', this.onMouseUp)
+		window.addEventListener('keydown', this.onKeyDown)
 	}
 
 	render = () => {
-		this.maze.render(this.cameraRotationX, this.cameraRotationY, this.lightIntensity)
+		this.game.render(this.lightIntensity)
 		requestAnimationFrame(this.render)
 	}
 
@@ -54,34 +44,29 @@ class App {
 		this.gl.viewport(0, 0, window.innerWidth, window.innerHeight)
 	}
 
-	private onMouseDown = (event: MouseEvent) => {
-		this.isMouseDown = true
-		this.lastMouseX = event.clientX
-		this.lastMouseY = event.clientY
-	}
-
-	private onMouseMove = (event: MouseEvent) => {
-		if (!this.isMouseDown) {
-			return
+	private onKeyDown = (event: KeyboardEvent) => {
+		switch (event.key) {
+			case 'w':
+			case 'W':
+			case 'ArrowUp':
+				this.game.move(DIRECTION.FORWARD)
+				break
+			case 's':
+			case 'S':
+			case 'ArrowDown':
+				this.game.move(DIRECTION.BACKWARD)
+				break
+			case 'a':
+			case 'A':
+			case 'ArrowLeft':
+				this.game.move(DIRECTION.ROTATE_LEFT)
+				break
+			case 'd':
+			case 'D':
+			case 'ArrowRight':
+				this.game.move(DIRECTION.ROTATE_RIGHT)
+				break
 		}
-
-		const deltaX = event.clientX - this.lastMouseX
-		const deltaY = event.clientY - this.lastMouseY
-		this.lastMouseX = event.clientX
-		this.lastMouseY = event.clientY
-
-		const sensitivity = 0.001
-		this.cameraRotationY -= deltaX * sensitivity
-		this.cameraRotationX += deltaY * sensitivity
-
-		const maxPitch = Math.PI / 2 - 0.01
-		const minPitch = -maxPitch
-		this.cameraRotationX = Math.max(minPitch, Math.min(maxPitch, this.cameraRotationX))
-	}
-
-
-	private onMouseUp = () => {
-		this.isMouseDown = false
 	}
 }
 
