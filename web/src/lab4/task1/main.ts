@@ -7,8 +7,12 @@ class App {
 	private readonly gl: WebGLRenderingContext
 	private readonly program: WebGLProgram
 	private deltoidalIcositetrahedron: DeltoidalIcositetrahedron
-	private then = 0
-	private cubeRotation = 0
+
+	private isMouseDown = false
+	private lastMouseX = 0
+	private lastMouseY = 0
+	private cameraRotationX = 0
+	private cameraRotationY = 0
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
@@ -24,14 +28,15 @@ class App {
 		this.deltoidalIcositetrahedron = new DeltoidalIcositetrahedron(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)
+
+		this.canvas.addEventListener('mousedown', this.onMouseDown)
+		this.canvas.addEventListener('mousemove', this.onMouseMove)
+		this.canvas.addEventListener('mouseup', this.onMouseUp)
+		this.canvas.addEventListener('mouseleave', this.onMouseUp)
 	}
 
-	render = (now: number) => {
-		now *= 0.0001
-		const deltaTime = now - this.then
-		this.then = now
-		this.deltoidalIcositetrahedron.render(this.cubeRotation)
-		this.cubeRotation += deltaTime
+	render = () => {
+		this.deltoidalIcositetrahedron.render(this.cameraRotationX, this.cameraRotationY)
 		requestAnimationFrame(this.render)
 	}
 
@@ -39,6 +44,36 @@ class App {
 		this.canvas.width = window.innerWidth
 		this.canvas.height = window.innerHeight
 		this.gl.viewport(0, 0, window.innerWidth, window.innerHeight)
+	}
+
+	private onMouseDown = (event: MouseEvent) => {
+		this.isMouseDown = true
+		this.lastMouseX = event.clientX
+		this.lastMouseY = event.clientY
+	}
+
+	private onMouseMove = (event: MouseEvent) => {
+		if (!this.isMouseDown) {
+			return
+		}
+
+		const deltaX = event.clientX - this.lastMouseX
+		const deltaY = event.clientY - this.lastMouseY
+		this.lastMouseX = event.clientX
+		this.lastMouseY = event.clientY
+
+		const sensitivity = 0.001
+		this.cameraRotationY -= deltaX * sensitivity
+		this.cameraRotationX += deltaY * sensitivity
+
+		const maxPitch = Math.PI / 2 - 0.01
+		const minPitch = -maxPitch
+		this.cameraRotationX = Math.max(minPitch, Math.min(maxPitch, this.cameraRotationX))
+	}
+
+
+	private onMouseUp = () => {
+		this.isMouseDown = false
 	}
 }
 

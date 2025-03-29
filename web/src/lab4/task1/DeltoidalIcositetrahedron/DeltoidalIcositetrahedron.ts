@@ -1,4 +1,4 @@
-import {mat4} from 'gl-matrix'
+import {mat4, ReadonlyVec3} from 'gl-matrix'
 
 class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
@@ -34,7 +34,7 @@ class DeltoidalIcositetrahedron {
 		this.modelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 	}
 
-	render(cubeRotation: number) {
+	render(cameraRotationX: number, cameraRotationY: number) {
 		const gl = this.gl
 		gl.clearColor(0.0, 0.0, 0.0, 0.1) // Clear to black, fully opaque
 		gl.clearDepth(1.0) // Clear everything
@@ -62,36 +62,18 @@ class DeltoidalIcositetrahedron {
 		// as the destination to receive the result.
 		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
 
-		// Set the drawing position to the "identity" point, which is
-		// the center of the scene.
+		// Вычисляем положение камеры в сферических координатах
+		const distance = 6.0
+		const eye: ReadonlyVec3 = [
+			distance * Math.cos(cameraRotationX) * Math.sin(cameraRotationY),
+			distance * Math.sin(cameraRotationX),
+			distance * Math.cos(cameraRotationX) * Math.cos(cameraRotationY),
+		]
+		const center: ReadonlyVec3 = [0, 0, 0]
+		const up: ReadonlyVec3 = [0, 1, 0]
+
 		const modelViewMatrix = mat4.create()
-
-		// Now move the drawing position a bit to where we want to
-		// start drawing the square.
-		mat4.translate(
-			modelViewMatrix, // destination matrix
-			modelViewMatrix, // matrix to translate
-			[-0.0, 0.0, -6.0],
-		) // amount to translate
-
-		mat4.rotate(
-			modelViewMatrix, // destination matrix
-			modelViewMatrix, // matrix to rotate
-			cubeRotation, // amount to rotate in radians
-			[0, 0, 1],
-		) // axis to rotate around (Z)
-		mat4.rotate(
-			modelViewMatrix, // destination matrix
-			modelViewMatrix, // matrix to rotate
-			cubeRotation * 0.7, // amount to rotate in radians
-			[0, 1, 0],
-		) // axis to rotate around (Y)
-		mat4.rotate(
-			modelViewMatrix, // destination matrix
-			modelViewMatrix, // matrix to rotate
-			cubeRotation * 0.3, // amount to rotate in radians
-			[1, 0, 0],
-		) // axis to rotate around (X)
+		mat4.lookAt(modelViewMatrix, eye, center, up)
 
 		// Tell WebGL how to pull out the positions from the position
 		// buffer into the vertexPosition attribute.
@@ -273,6 +255,7 @@ class DeltoidalIcositetrahedron {
 		const edgeIndices: number[] = []
 		this.getLineFaces().forEach(item => {
 			if (item.length > 1) {
+				// @ts-expect-error
 				edgeIndices.push(item[0], item[1])
 			}
 		})
@@ -304,7 +287,9 @@ class DeltoidalIcositetrahedron {
 				indices.push(...face)
 			}
 			else if (face.length === 4) {
+				// @ts-expect-error
 				indices.push(face[0], face[1], face[2])
+				// @ts-expect-error
 				indices.push(face[1], face[2], face[3])
 			}
 		}
