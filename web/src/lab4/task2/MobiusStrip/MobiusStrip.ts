@@ -9,8 +9,8 @@ class MobiusStrip {
 
 	private readonly vertexPosition: number
 	private readonly vertexColor: number
-	private readonly projectionMatrix: WebGLUniformLocation | null
-	private readonly modelViewMatrix: WebGLUniformLocation | null
+	private readonly projectionMatrixLocation: WebGLUniformLocation | null
+	private readonly modelViewMatrixLocation: WebGLUniformLocation | null
 	private readonly normalMatrixLocation: WebGLUniformLocation | null
 	private readonly normalLocation: number
 
@@ -19,6 +19,9 @@ class MobiusStrip {
 	private edgeCount = 0
 	private indexCount = 0
 	private positions: number[] = []
+
+	private readonly segmentsU = 100
+	private readonly segmentsV = 5
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
@@ -33,14 +36,13 @@ class MobiusStrip {
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
 		this.vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor')
-		this.projectionMatrix = gl.getUniformLocation(
+		this.projectionMatrixLocation = gl.getUniformLocation(
 			shaderProgram,
 			'uProjectionMatrix',
 		)
-		this.modelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
+		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 		this.normalLocation = gl.getAttribLocation(shaderProgram, 'aNormal')
 		this.normalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix')
-
 		this.reverseLightDirection = gl.getUniformLocation(shaderProgram, 'uReverseLightDirection')
 	}
 
@@ -109,12 +111,12 @@ class MobiusStrip {
 			normalMatrix,
 		)
 		gl.uniformMatrix4fv(
-			this.projectionMatrix,
+			this.projectionMatrixLocation,
 			false,
 			projectionMatrix,
 		)
 		gl.uniformMatrix4fv(
-			this.modelViewMatrix,
+			this.modelViewMatrixLocation,
 			false,
 			modelViewMatrix,
 		)
@@ -230,13 +232,6 @@ class MobiusStrip {
 		const positions = this.getPositions()
 		this.positions = positions.slice()
 
-		for (let i = 2; i < positions.length; i += 3) {
-			console.log((i - 2) / 3, [positions[i - 2], positions[i - 1], positions[i]])
-		}
-
-		// Now pass the list of positions into WebGL to build the
-		// shape. We do this by creating a Float32Array from the
-		// JavaScript array, then use it to fill the current buffer.
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
 		return positionBuffer
@@ -247,7 +242,7 @@ class MobiusStrip {
 		const numVertices = this.positions.length / 3
 		const colors: number[] = []
 		for (let i = 0; i < numVertices; i++) {
-			colors.push(Math.random(), Math.random(), Math.random(), 1.0)
+			colors.push(0.8, 0.3, 0, 1.0)
 		}
 		const colorBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
@@ -259,10 +254,10 @@ class MobiusStrip {
 	private initEdgeBuffer(): WebGLBuffer | null {
 		const gl = this.gl
 		const edgeIndices: number[] = []
-		this.getLineFaces().forEach(item => {
-			if (item.length > 1) {
-				// @ts-expect-error
-				edgeIndices.push(item[0], item[1])
+		const lineFaces = this.getLineFaces()
+		lineFaces.forEach(item => {
+			if (item.length === 2) {
+				edgeIndices.push(...item)
 			}
 		})
 
@@ -283,12 +278,8 @@ class MobiusStrip {
 		// indices into the vertex array to specify each triangle's
 		// position.
 		const triangleFaces = this.getTriangleFaces()
-
-		const allFaces: number[][] = [...triangleFaces]
-		// Преобразуем грани в массив индексов для отрисовки.
-		// Для квадратов разобьём их на 2 треугольника.
 		const indices: number[] = []
-		for (const face of allFaces) {
+		for (const face of triangleFaces) {
 			if (face.length === 3) {
 				indices.push(...face)
 			}
@@ -301,8 +292,8 @@ class MobiusStrip {
 
 	private initNormalBuffer(): WebGLBuffer | null {
 		const gl = this.gl
-		const positions = this.getPositions()
-		const normals = this.computeNormals(positions, this.getTriangleFaces())
+		const triangleFaces = this.getTriangleFaces()
+		const normals = this.computeNormals(this.positions, triangleFaces)
 		const normalBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
@@ -311,8 +302,7 @@ class MobiusStrip {
 
 	private computeNormals(positions: number[], faces: number[][]): number[] {
 		const numVertices = positions.length / 3
-		const normals = new Array(numVertices * 3).fill(1)
-
+		const normals = new Array(numVertices * 3).fill(0)
 		faces.forEach(face => {
 			if (face.length === 3) {
 				// @ts-expect-error
@@ -338,11 +328,11 @@ class MobiusStrip {
 				vec3.cross(normal, v1, v2)
 				vec3.normalize(normal, normal)
 
-				for (const idx of face) {
+				face.forEach(idx => {
 					normals[idx * 3] += normal[0]
 					normals[idx * 3 + 1] += normal[1]
 					normals[idx * 3 + 2] += normal[2]
-				}
+				})
 			}
 		})
 
@@ -361,184 +351,70 @@ class MobiusStrip {
 		return normals
 	}
 
+	// x(u,v) = (1 + v/2 * cos(u/2)) * cos(u)
+	// y(u,v) = (1 + v/2 * cos(u/2)) * sin(u)
+	// z(u,v) = (v/2) * sin(u/2)
 	private getPositions(): number[] {
-		// https://en.wikipedia.org/wiki/Deltoidal_icositetrahedron
-		const a = Math.sqrt(2) / 2
-		const b = (2 * Math.sqrt(2) + 1) / 7
+		const positions: number[] = []
+		const uMin = 0
+		const uMax = 2 * Math.PI
+		const vMin = -1
+		const vMax = 1
 
-		return [
-			// Красные вершины
-			-1, 0, 0,
-			1, 0, 0,
+		for (let i = 0; i <= this.segmentsU; i++) {
+			const u = uMin + ((uMax - uMin) * i) / this.segmentsU
+			for (let j = 0; j <= this.segmentsV; j++) {
+				const v = vMin + ((vMax - vMin) * j) / this.segmentsV
+				const cosU = Math.cos(u)
+				const sinU = Math.sin(u)
+				const cosU2 = Math.cos(u / 2)
+				const sinU2 = Math.sin(u / 2)
+				const factor = 1 + (v / 2) * cosU2
+				const x = factor * cosU
+				// const y = factor * sinU
+				// const z = (v / 2) * sinU2
+				const z = factor * sinU
+				const y = -(v / 2) * sinU2
+				positions.push(x, y, z)
+			}
+		}
 
-			0, -1, 0,
-			0, 1, 0,
-
-			0, 0, -1,
-			0, 0, 1,
-
-			// Синие вершины
-			0, -a, -a,
-			0, -a, a,
-			0, a, -a,
-			0, a, a,
-
-			-a, 0, -a,
-			-a, 0, a,
-			a, 0, -a,
-			a, 0, a,
-
-			-a, -a, 0,
-			-a, a, 0,
-			a, -a, 0,
-			a, a, 0,
-
-			// Желтые вершины
-			-b, -b, -b,
-			-b, -b, b,
-			-b, b, -b,
-			-b, b, b,
-			b, -b, -b,
-			b, -b, b,
-			b, b, -b,
-			b, b, b,
-		]
+		return positions
 	}
 
 	private getTriangleFaces(): number[][] {
-		return [
-			// Нижнее ложе
-			[2, 7, 14],
-			[2, 16, 7],
-			[2, 14, 6],
-			[2, 6, 16],
+		const faces: number[][] = []
+		for (let i = 0; i < this.segmentsU; i++) {
+			for (let j = 0; j < this.segmentsV; j++) {
+				const idx1 = i * (this.segmentsV + 1) + j
+				const idx2 = (i + 1) * (this.segmentsV + 1) + j
+				const idx3 = i * (this.segmentsV + 1) + (j + 1)
+				const idx4 = (i + 1) * (this.segmentsV + 1) + (j + 1)
+				faces.push([idx1, idx2, idx3])
+				faces.push([idx3, idx2, idx4])
+			}
+		}
 
-			// Верхнее ложе
-			[3, 8, 15],
-			[3, 15, 9],
-			[3, 9, 17],
-			[3, 17, 8],
-
-			// Левое ложе
-			[0, 10, 14],
-			[0, 14, 11],
-			[0, 11, 15],
-			[0, 15, 10],
-
-			// Правое ложе
-			[1, 13, 16],
-			[1, 17, 13],
-			[1, 16, 12],
-			[1, 12, 17],
-
-			// Переднее ложе
-			[5, 11, 7],
-			[5, 9, 11],
-			[5, 13, 9],
-			[5, 7, 13],
-
-			// Заднее ложе
-			[4, 6, 10],
-			[4, 10, 8],
-			[4, 8, 12],
-			[4, 12, 6],
-
-			// Правое верхнее переднее ложе
-			[25, 9, 13],
-			[25, 13, 17],
-			[25, 17, 9],
-
-			// Левое верхнее переднее ложе
-			[21, 11, 9],
-			[21, 15, 11],
-			[21, 9, 15],
-
-			// Правое нижнее переднее ложе
-			[23, 13, 7],
-			[23, 16, 13],
-			[23, 7, 16],
-
-			// Левое нижнее переднее ложе
-			[19, 7, 11],
-			[19, 11, 14],
-			[19, 14, 7],
-
-			// Правое нижнее заднее ложе
-			[22, 12, 16],
-			[22, 6, 12],
-			[22, 16, 6],
-
-			// Левое нижнее заднее ложе
-			[18, 14, 10],
-			[18, 10, 6],
-			[18, 6, 14],
-
-			// Правое верхнее заднее ложе
-			[24, 17, 12],
-			[24, 8, 17],
-			[24, 12, 8],
-
-			// Левое верхнее заднее ложе
-			[20, 10, 15],
-			[20, 15, 8],
-			[20, 8, 10],
-		]
+		return faces
 	}
 
 	private getLineFaces(): number[][] {
-		return [
-			[0, 15],
-			[0, 14],
-			[0, 10],
-			[0, 11],
-			[15, 20],
-			[15, 21],
-			[15, 3],
-			[14, 19],
-			[14, 18],
-			[14, 2],
-			[21, 9],
-			[21, 11],
-			[20, 8],
-			[20, 10],
-			[19, 11],
-			[19, 7],
-			[18, 10],
-			[18, 6],
-			[11, 5],
-			[10, 4],
-
-			[1, 17],
-			[1, 16],
-			[1, 13],
-			[1, 12],
-			[17, 3],
-			[17, 25],
-			[17, 24],
-			[16, 2],
-			[16, 23],
-			[16, 22],
-			[25, 9],
-			[25, 13],
-			[24, 8],
-			[24, 12],
-			[23, 7],
-			[23, 13],
-			[22, 6],
-			[22, 12],
-			[13, 5],
-			[12, 4],
-			[22, 12],
-
-			[9, 3],
-			[9, 5],
-			[8, 3],
-			[8, 4],
-			[7, 2],
-			[7, 5],
-			[6, 2],
-			[6, 4],
-		]
+		const lines: number[][] = []
+		for (let i = 0; i <= this.segmentsU; i++) {
+			for (let j = 0; j < this.segmentsV; j++) {
+				const idx1 = i * (this.segmentsV + 1) + j
+				const idx2 = i * (this.segmentsV + 1) + (j + 1)
+				lines.push([idx1, idx2])
+			}
+		}
+		for (let j = 0; j <= this.segmentsV; j++) {
+			for (let i = 0; i < this.segmentsU; i++) {
+				const idx1 = i * (this.segmentsV + 1) + j
+				const idx2 = (i + 1) * (this.segmentsV + 1) + j
+				lines.push([idx1, idx2])
+			}
+		}
+		return lines
 	}
 }
 
