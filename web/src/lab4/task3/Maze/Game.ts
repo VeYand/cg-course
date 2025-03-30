@@ -18,14 +18,14 @@ class Game {
 	private cameraAngle = 0
 
 	private moveSpeed = 0.02
-	private turnSpeed = 0.012
+	private turnSpeed = 0.02
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
 	) {
-		const floorColor = vec3.fromValues(0.0, 1.0, 0.0)
-		const ceilingColor = vec3.fromValues(0.8, 0.8, 0.8)
+		const floorColor = vec3.fromValues(0.992, 0.9176, 0.8549)
+		const ceilingColor = vec3.fromValues(0.717, 0.87, 0.909)
 
 		this.maze = new Maze(this.gl, this.shaderProgram)
 

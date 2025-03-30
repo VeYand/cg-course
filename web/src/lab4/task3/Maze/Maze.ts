@@ -15,9 +15,9 @@ class Maze {
 		this.initCubes()
 	}
 
-	render(viewMatrix: mat4, projectionMatrix: mat4, lightPos: vec3) {
+	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
 		for (const cube of this.cubes) {
-			cube.render(viewMatrix, projectionMatrix, lightPos)
+			cube.render(viewMatrix, projectionMatrix, lightDir)
 		}
 	}
 
@@ -34,19 +34,24 @@ class Maze {
 	}
 
 	private generateMaze() {
-		for (let i = 0; i < this.MAZE_SIZE; i++) {
-			this.maze[i] = []
-			for (let j = 0; j < this.MAZE_SIZE; j++) {
-				if (i === 0 || j === 0 || i === this.MAZE_SIZE - 1 || j === this.MAZE_SIZE - 1) {
-					// @ts-expect-error
-					this.maze[i][j] = 1
-				}
-				else {
-					// @ts-expect-error
-					this.maze[i][j] = (i % 2 === 0 && j % 3 === 0) ? 1 : 0
-				}
-			}
-		}
+		this.maze = [
+			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+			[1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+			[1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+			[1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+			[1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1],
+			[1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+			[1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+			[1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+			[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+		]
 	}
 
 	private initCubes() {
@@ -58,7 +63,13 @@ class Maze {
 					const z = i * this.CELL_SIZE + this.CELL_SIZE / 2
 					const y = 0.5
 
-					const color = vec3.fromValues(1.0, 0.0, 0.0)
+					let color: vec3
+					if (i === 0 || j === 0 || i === this.MAZE_SIZE - 1 || j === this.MAZE_SIZE - 1) {
+						color = vec3.fromValues(1, 0, 0)
+					}
+					else {
+						color = vec3.fromValues(0.3, i / this.MAZE_SIZE, j / this.MAZE_SIZE)
+					}
 					const cube = new Cube(this.gl, this.shaderProgram, color, [x, y, z], this.CELL_SIZE)
 					this.cubes.push(cube)
 				}
