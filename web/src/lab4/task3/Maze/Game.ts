@@ -17,8 +17,8 @@ class Game {
 	private cameraPos = vec3.fromValues(1, 0.5, 1)
 	private cameraAngle = 0
 
-	private moveSpeed = 0.05
-	private turnSpeed = 0.03
+	private moveSpeed = 0.02
+	private turnSpeed = 0.012
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,

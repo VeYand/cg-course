@@ -8,6 +8,7 @@ class App {
 	private readonly gl: WebGLRenderingContext
 	private readonly program: WebGLProgram
 	private game: Game
+	private handle: Map<DIRECTION, boolean> = new Map()
 
 	private lightIntensity = 1
 
@@ -31,9 +32,11 @@ class App {
 
 		window.addEventListener('resize', this.resizeCanvas)
 		window.addEventListener('keydown', this.onKeyDown)
+		window.addEventListener('keyup', this.onKeyUp)
 	}
 
 	render = () => {
+		[...this.handle.entries()].map(value => value[1] && this.game.move(value[0]))
 		this.game.render(this.lightIntensity)
 		requestAnimationFrame(this.render)
 	}
@@ -49,22 +52,47 @@ class App {
 			case 'w':
 			case 'W':
 			case 'ArrowUp':
-				this.game.move(DIRECTION.FORWARD)
+				this.handle.set(DIRECTION.FORWARD, true)
 				break
 			case 's':
 			case 'S':
 			case 'ArrowDown':
-				this.game.move(DIRECTION.BACKWARD)
+				this.handle.set(DIRECTION.BACKWARD, true)
 				break
 			case 'a':
 			case 'A':
 			case 'ArrowLeft':
-				this.game.move(DIRECTION.ROTATE_LEFT)
+				this.handle.set(DIRECTION.ROTATE_LEFT, true)
 				break
 			case 'd':
 			case 'D':
 			case 'ArrowRight':
-				this.game.move(DIRECTION.ROTATE_RIGHT)
+				this.handle.set(DIRECTION.ROTATE_RIGHT, true)
+				break
+		}
+	}
+
+	private onKeyUp = (event: KeyboardEvent) => {
+		switch (event.key) {
+			case 'w':
+			case 'W':
+			case 'ArrowUp':
+				this.handle.set(DIRECTION.FORWARD, false)
+				break
+			case 's':
+			case 'S':
+			case 'ArrowDown':
+				this.handle.set(DIRECTION.BACKWARD, false)
+				break
+			case 'a':
+			case 'A':
+			case 'ArrowLeft':
+				this.handle.set(DIRECTION.ROTATE_LEFT, false)
+				break
+			case 'd':
+			case 'D':
+			case 'ArrowRight':
+				this.handle.set(DIRECTION.ROTATE_RIGHT, false)
 				break
 		}
 	}
