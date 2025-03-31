@@ -3,7 +3,6 @@ import {mat3, mat4, ReadonlyVec3, vec3} from 'gl-matrix'
 class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
 	private readonly colorBuffer: WebGLBuffer | null
-	private readonly edgeBuffer: WebGLBuffer | null
 	private readonly indexBuffer: WebGLBuffer | null
 	private readonly normalBuffer: WebGLBuffer | null
 
@@ -16,9 +15,7 @@ class DeltoidalIcositetrahedron {
 
 	private readonly reverseLightDirection: WebGLUniformLocation | null
 
-	private edgeCount = 0
 	private indexCount = 0
-	private positions: number[] = []
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
@@ -28,7 +25,6 @@ class DeltoidalIcositetrahedron {
 		this.positionBuffer = buffers.position
 		this.colorBuffer = buffers.color
 		this.indexBuffer = buffers.indices
-		this.edgeBuffer = buffers.edges
 		this.normalBuffer = buffers.normal
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
@@ -132,14 +128,6 @@ class DeltoidalIcositetrahedron {
 			const offset = 0
 			gl.drawElements(gl.TRIANGLES, vertexCount, type, offset)
 		}
-
-		// Отрисовка рёбер
-		{
-			gl.disableVertexAttribArray(this.vertexColor)
-			gl.vertexAttrib4f(this.vertexColor, 0, 0, 0, 1)
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.edgeBuffer)
-			gl.drawElements(gl.LINES, this.edgeCount, gl.UNSIGNED_SHORT, 0)
-		}
 	}
 
 	private setPositionAttribute() {
@@ -203,52 +191,126 @@ class DeltoidalIcositetrahedron {
 	}
 
 	private initBuffers() {
-		const positionBuffer = this.initPositionBuffer()
-		const colorBuffer = this.initColorBuffer()
-		const indexBuffer = this.initIndexBuffer()
-		const edgeBuffer = this.initEdgeBuffer()
-		const normal = this.initNormalBuffer()
+		const faceData = this.initFaceBuffers()
+
+		const positionBuffer = this.initPositionBuffer(faceData.positions)
+
+		const colorBuffer = this.initColorBuffer(faceData.colors)
+
+		const indexBuffer = this.initIndexBuffer(faceData.indices)
+
+		const normalBuffer = this.initNormalBuffer(faceData.normals)
 
 		return {
 			position: positionBuffer,
 			color: colorBuffer,
 			indices: indexBuffer,
-			edges: edgeBuffer,
-			normal: normal,
+			normal: normalBuffer,
 		}
 	}
 
-	private initPositionBuffer(): WebGLBuffer | null {
-		const gl = this.gl
-		// Create a buffer for the square's positions.
-		const positionBuffer = gl.createBuffer()
+	private initFaceBuffers() {
+		const triangleFaces = this.getTriangleFaces() // 48 треугольников
+		const originalPositions = this.getPositions()
+		const positions: number[] = []
+		const colors: number[] = []
+		const indices: number[] = []
+		const normals: number[] = []
 
-		// Select the positionBuffer as the one to apply buffer
-		// operations to from here out.
-		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+		const faceColors: [number, number, number, number][] = shuffleArray([
+			[1.00, 0.00, 0.00, 1.0],
+			[1.00, 0.30, 0.00, 1.0],
+			[0.50, 1.00, 0.00, 1.0],
+			[0.00, 0.85, 1.00, 1.0],
+			[0.00, 0.70, 1.00, 1.0],
+			[1.00, 0.15, 0.00, 1.0],
+			[0.00, 0.55, 1.00, 1.0],
+			[0.95, 1.00, 0.00, 1.0],
+			[0.35, 1.00, 0.00, 1.0],
+			[0.20, 1.00, 0.00, 1.0],
+			[0.05, 1.00, 0.00, 1.0],
+			[1.00, 0.00, 0.90, 1.0],
+			[0.00, 1.00, 0.25, 1.0],
+			[0.00, 1.00, 0.40, 1.0],
+			[0.80, 1.00, 0.00, 1.0],
+			[0.00, 0.40, 1.00, 1.0],
+			[0.00, 0.25, 1.00, 1.0],
+			[1.00, 0.75, 0.00, 1.0],
+			[1.00, 0.90, 0.00, 1.0],
+			[1.00, 0.00, 0.75, 1.0],
+			[1.00, 0.00, 0.60, 1.0],
+			[0.00, 1.00, 0.10, 1.0],
+			[0.00, 1.00, 0.55, 1.0],
+			[1.00, 0.45, 0.00, 1.0],
+			[1.00, 0.60, 0.00, 1.0],
+			[0.00, 1.00, 0.70, 1.0],
+			[0.00, 1.00, 0.85, 1.0],
+			[0.00, 1.00, 1.00, 1.0],
+			[0.65, 0.00, 1.00, 1.0],
+			[0.80, 0.00, 1.00, 1.0],
+			[0.95, 0.00, 1.00, 1.0],
+			[1.00, 0.00, 0.45, 1.0],
+			[1.00, 0.00, 0.30, 1.0],
+			[0.65, 1.00, 0.00, 1.0],
+			[0.00, 0.10, 1.00, 1.0],
+			[0.05, 0.00, 1.00, 1.0],
+			[0.20, 0.00, 1.00, 1.0],
+			[0.35, 0.00, 1.00, 1.0],
+			[0.50, 0.00, 1.00, 1.0],
+			[1.00, 0.00, 0.15, 1.0],
+		])
 
-		const positions = this.getPositions()
-		this.positions = positions.slice()
+		for (let i = 0; i < triangleFaces.length; i++) {
+			const faceNumber = Math.floor(i / 2)
+			const color = faceColors[faceNumber % faceColors.length]
+			const triangle = triangleFaces[i]
+			const baseIndex = positions.length / 3
+			triangle?.forEach(idx => {
+				positions.push(
+					// @ts-expect-error
+					originalPositions[idx * 3],
+					originalPositions[idx * 3 + 1],
+					originalPositions[idx * 3 + 2],
+				)
+				if (color) {
+					colors.push(...color)
+				}
+			})
+			indices.push(baseIndex, baseIndex + 1, baseIndex + 2)
 
-		for (let i = 2; i < positions.length; i += 3) {
-			console.log((i - 2) / 3, [positions[i - 2], positions[i - 1], positions[i]])
+			const posLen = positions.length
+			// @ts-expect-error
+			const p0 = vec3.fromValues(positions[posLen - 9], positions[posLen - 8], positions[posLen - 7])
+			// @ts-expect-error
+			const p1 = vec3.fromValues(positions[posLen - 6], positions[posLen - 5], positions[posLen - 4])
+			// @ts-expect-error
+			const p2 = vec3.fromValues(positions[posLen - 3], positions[posLen - 2], positions[posLen - 1])
+			const v1 = vec3.create(),
+				v2 = vec3.create()
+			vec3.subtract(v1, p1, p0)
+			vec3.subtract(v2, p2, p0)
+			const normal = vec3.create()
+			vec3.cross(normal, v1, v2)
+			vec3.normalize(normal, normal)
+			for (let j = 0; j < 3; j++) {
+				normals.push(normal[0], normal[1], normal[2])
+			}
 		}
 
-		// Now pass the list of positions into WebGL to build the
-		// shape. We do this by creating a Float32Array from the
-		// JavaScript array, then use it to fill the current buffer.
+		return {positions, colors, indices, normals}
+	}
+
+	private initPositionBuffer(positions: number[]): WebGLBuffer | null {
+		const gl = this.gl
+		const positionBuffer = gl.createBuffer()
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW)
 
 		return positionBuffer
 	}
 
-	private initColorBuffer(): WebGLBuffer | null {
+	private initColorBuffer(colors: number[]): WebGLBuffer | null {
 		const gl = this.gl
-		const numVertices = this.positions.length / 3
-		const colors: number[] = []
-		for (let i = 0; i < numVertices; i++) {
-			colors.push(Math.random(), Math.random(), Math.random(), 1.0)
-		}
 		const colorBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
@@ -256,107 +318,21 @@ class DeltoidalIcositetrahedron {
 		return colorBuffer
 	}
 
-	private initEdgeBuffer(): WebGLBuffer | null {
+	private initIndexBuffer(indices: number[]): WebGLBuffer | null {
 		const gl = this.gl
-		const edgeIndices: number[] = []
-		this.getLineFaces().forEach(item => {
-			if (item.length > 1) {
-				// @ts-expect-error
-				edgeIndices.push(item[0], item[1])
-			}
-		})
-
-		const edgeBuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBuffer)
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(edgeIndices), gl.STATIC_DRAW)
-		this.edgeCount = edgeIndices.length
-		return edgeBuffer
-	}
-
-	private initIndexBuffer(): WebGLBuffer | null {
-		const gl = this.gl
-
 		const indexBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-
-		// This array defines each face as two triangles, using the
-		// indices into the vertex array to specify each triangle's
-		// position.
-		const triangleFaces = this.getTriangleFaces()
-
-		const allFaces: number[][] = [...triangleFaces]
-		const indices: number[] = []
-		for (const face of allFaces) {
-			if (face.length === 3) {
-				indices.push(...face)
-			}
-		}
-
 		this.indexCount = indices.length
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 		return indexBuffer
 	}
 
-	private initNormalBuffer(): WebGLBuffer | null {
+	private initNormalBuffer(normals: number[]): WebGLBuffer | null {
 		const gl = this.gl
-		const positions = this.getPositions()
-		const normals = this.computeNormals(positions, this.getTriangleFaces())
 		const normalBuffer = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
 		return normalBuffer
-	}
-
-	private computeNormals(positions: number[], faces: number[][]): number[] {
-		const numVertices = positions.length / 3
-		const normals = new Array(numVertices * 3).fill(1)
-
-		faces.forEach(face => {
-			if (face.length === 3) {
-				// @ts-expect-error
-				const idx0 = face[0] * 3
-				// @ts-expect-error
-				const idx1 = face[1] * 3
-				// @ts-expect-error
-				const idx2 = face[2] * 3
-
-				// @ts-expect-error
-				const p0 = vec3.fromValues(positions[idx0], positions[idx0 + 1], positions[idx0 + 2])
-				// @ts-expect-error
-				const p1 = vec3.fromValues(positions[idx1], positions[idx1 + 1], positions[idx1 + 2])
-				// @ts-expect-error
-				const p2 = vec3.fromValues(positions[idx2], positions[idx2 + 1], positions[idx2 + 2])
-
-				const v1 = vec3.create()
-				const v2 = vec3.create()
-				vec3.subtract(v1, p1, p0)
-				vec3.subtract(v2, p2, p0)
-
-				const normal = vec3.create()
-				vec3.cross(normal, v1, v2)
-				vec3.normalize(normal, normal)
-
-				for (const idx of face) {
-					normals[idx * 3] += normal[0]
-					normals[idx * 3 + 1] += normal[1]
-					normals[idx * 3 + 2] += normal[2]
-				}
-			}
-		})
-
-		for (let i = 0; i < numVertices; i++) {
-			const nx = normals[i * 3]
-			const ny = normals[i * 3 + 1]
-			const nz = normals[i * 3 + 2]
-			const len = Math.hypot(nx, ny, nz)
-			if (len > 0) {
-				normals[i * 3] = nx / len
-				normals[i * 3 + 1] = ny / len
-				normals[i * 3 + 2] = nz / len
-			}
-		}
-
-		return normals
 	}
 
 	private getPositions(): number[] {
@@ -417,7 +393,6 @@ class DeltoidalIcositetrahedron {
 			[10, 0, 15],
 			[10, 15, 20],
 
-
 			[7, 19, 14],
 			[7, 14, 2],
 
@@ -441,7 +416,6 @@ class DeltoidalIcositetrahedron {
 
 			[8, 4, 10],
 			[8, 10, 20],
-
 
 			[13, 23, 16],
 			[13, 16, 1],
@@ -480,62 +454,16 @@ class DeltoidalIcositetrahedron {
 			[6, 16, 2],
 		]
 	}
+}
 
-	private getLineFaces(): number[][] {
-		return [
-			[0, 15],
-			[0, 14],
-			[0, 10],
-			[0, 11],
-			[15, 20],
-			[15, 21],
-			[15, 3],
-			[14, 19],
-			[14, 18],
-			[14, 2],
-			[21, 9],
-			[21, 11],
-			[20, 8],
-			[20, 10],
-			[19, 11],
-			[19, 7],
-			[18, 10],
-			[18, 6],
-			[11, 5],
-			[10, 4],
-
-			[1, 17],
-			[1, 16],
-			[1, 13],
-			[1, 12],
-			[17, 3],
-			[17, 25],
-			[17, 24],
-			[16, 2],
-			[16, 23],
-			[16, 22],
-			[25, 9],
-			[25, 13],
-			[24, 8],
-			[24, 12],
-			[23, 7],
-			[23, 13],
-			[22, 6],
-			[22, 12],
-			[13, 5],
-			[12, 4],
-			[22, 12],
-
-			[9, 3],
-			[9, 5],
-			[8, 3],
-			[8, 4],
-			[7, 2],
-			[7, 5],
-			[6, 2],
-			[6, 4],
-		]
+const shuffleArray = <T>(array: T[]): T[] => {
+	const newArray = array.slice()
+	for (let i = newArray.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		// @ts-expect-error
+		[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
 	}
+	return newArray
 }
 
 export {
