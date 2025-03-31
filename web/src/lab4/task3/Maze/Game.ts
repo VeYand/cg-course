@@ -36,7 +36,7 @@ class Game {
 		this.ceiling = new Plane(this.gl, this.shaderProgram, ceilingColor, [centerX, 1, centerZ], this.maze.getSize().mazeSize * this.maze.getSize().cellSize, 'top')
 	}
 
-	render(lightIntensity: number) {
+	render() {
 		const gl = this.gl
 		gl.clearColor(0.0, 0.0, 0.0, 1.0)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -59,11 +59,9 @@ class Game {
 		const viewMatrix = mat4.create()
 		mat4.lookAt(viewMatrix, this.cameraPos, center, up)
 
-		const lightDir = vec3.fromValues(0, 0, -lightIntensity)
-
-		this.floor.render(viewMatrix, projectionMatrix, lightDir)
-		this.ceiling.render(viewMatrix, projectionMatrix, lightDir)
-		this.maze.render(viewMatrix, projectionMatrix, lightDir)
+		this.floor.render(viewMatrix, projectionMatrix)
+		this.ceiling.render(viewMatrix, projectionMatrix)
+		this.maze.render(viewMatrix, projectionMatrix)
 	}
 
 	move(direction: DIRECTION) {

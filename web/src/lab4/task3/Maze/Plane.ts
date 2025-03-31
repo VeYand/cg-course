@@ -1,19 +1,15 @@
-import {mat4, mat3, vec3} from 'gl-matrix'
+import {mat4, vec3} from 'gl-matrix'
 
 class Plane {
 	private positionBuffer: WebGLBuffer | null = null
 	private colorBuffer: WebGLBuffer | null = null
 	private readonly edgeBuffer: WebGLBuffer | null
-	private normalBuffer: WebGLBuffer | null = null
 	private indexBuffer: WebGLBuffer | null = null
 
 	private vertexPosition: number
 	private vertexColor: number
-	private vertexNormal: number
 	private projectionMatrixLocation: WebGLUniformLocation | null
 	private modelViewMatrixLocation: WebGLUniformLocation | null
-	private normalMatrixLocation: WebGLUniformLocation | null
-	private lightPosLocation: WebGLUniformLocation | null
 
 	private edgeCount = 0
 	private indicesCount = 0
@@ -33,18 +29,14 @@ class Plane {
 		this.colorBuffer = buffers.color
 		this.indexBuffer = buffers.indices
 		this.edgeBuffer = buffers.edges
-		this.normalBuffer = buffers.normal
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
 		this.vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor')
-		this.vertexNormal = gl.getAttribLocation(shaderProgram, 'aNormal')
 		this.projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix')
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
-		this.normalMatrixLocation = gl.getUniformLocation(shaderProgram, 'uNormalMatrix')
-		this.lightPosLocation = gl.getUniformLocation(shaderProgram, 'uLightDir')
 	}
 
-	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
+	render(viewMatrix: mat4, projectionMatrix: mat4) {
 		const gl = this.gl
 
 		const modelMatrix = mat4.create()
@@ -52,18 +44,11 @@ class Plane {
 		const modelViewMatrix = mat4.create()
 		mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
 
-		const normalMatrix = mat3.create()
-		mat3.fromMat4(normalMatrix, modelViewMatrix)
-		mat3.invert(normalMatrix, normalMatrix)
-		mat3.transpose(normalMatrix, normalMatrix)
-
 		// Tell WebGL how to pull out the positions from the position
 		// buffer into the vertexPosition attribute.
 		this.setPositionAttribute()
 
 		this.setColorAttribute()
-
-		this.setNormalAttribute()
 
 		// Tell WebGL which indices to use to index the vertices
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
@@ -72,11 +57,6 @@ class Plane {
 		gl.useProgram(this.shaderProgram)
 
 		// Set the shader uniforms
-		gl.uniformMatrix3fv(
-			this.normalMatrixLocation,
-			false,
-			normalMatrix,
-		)
 		gl.uniformMatrix4fv(
 			this.projectionMatrixLocation,
 			false,
@@ -86,11 +66,6 @@ class Plane {
 			this.modelViewMatrixLocation,
 			false,
 			modelViewMatrix,
-		)
-
-		gl.uniform3fv(
-			this.lightPosLocation,
-			lightDir,
 		)
 
 		// Отрисовка граней
@@ -151,38 +126,17 @@ class Plane {
 		gl.enableVertexAttribArray(this.vertexColor)
 	}
 
-	private setNormalAttribute() {
-		const gl = this.gl
-		const numComponents = 3
-		const type = gl.FLOAT // the data in the buffer is 32bit floats
-		const normalize = false // don't normalize
-		const stride = 0 // how many bytes to get from one set of values to the next
-		const offset = 0 // how many bytes inside the buffer to start from
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer)
-		gl.vertexAttribPointer(
-			this.vertexNormal,
-			numComponents,
-			type,
-			normalize,
-			stride,
-			offset,
-		)
-		gl.enableVertexAttribArray(this.vertexNormal)
-	}
-
 	private initBuffers() {
 		const positionBuffer = this.initPositionBuffer()
 		const colorBuffer = this.initColorBuffer()
 		const indexBuffer = this.initIndexBuffer()
 		const edgeBuffer = this.initEdgeBuffer()
-		const normal = this.initNormalBuffer()
 
 		return {
 			position: positionBuffer,
 			color: colorBuffer,
 			indices: indexBuffer,
 			edges: edgeBuffer,
-			normal: normal,
 		}
 	}
 
@@ -265,68 +219,6 @@ class Plane {
 		this.indicesCount = indices.length
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 		return indexBuffer
-	}
-
-	private initNormalBuffer(): WebGLBuffer | null {
-		const gl = this.gl
-		const positions = this.getPositions()
-		const normals = this.computeNormals(positions, this.getTriangleFaces())
-		const normalBuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW)
-		return normalBuffer
-	}
-
-	private computeNormals(positions: number[], faces: number[][]): number[] {
-		const numVertices = positions.length / 3
-		const normals = new Array(numVertices * 3).fill(1)
-
-		faces.forEach(face => {
-			if (face.length === 3) {
-				// @ts-expect-error
-				const idx0 = face[0] * 3
-				// @ts-expect-error
-				const idx1 = face[1] * 3
-				// @ts-expect-error
-				const idx2 = face[2] * 3
-
-				// @ts-expect-error
-				const p0 = vec3.fromValues(positions[idx0], positions[idx0 + 1], positions[idx0 + 2])
-				// @ts-expect-error
-				const p1 = vec3.fromValues(positions[idx1], positions[idx1 + 1], positions[idx1 + 2])
-				// @ts-expect-error
-				const p2 = vec3.fromValues(positions[idx2], positions[idx2 + 1], positions[idx2 + 2])
-
-				const v1 = vec3.create()
-				const v2 = vec3.create()
-				vec3.subtract(v1, p1, p0)
-				vec3.subtract(v2, p2, p0)
-
-				const normal = vec3.create()
-				vec3.cross(normal, v1, v2)
-				vec3.normalize(normal, normal)
-
-				for (const idx of face) {
-					normals[idx * 3] += normal[0]
-					normals[idx * 3 + 1] += normal[1]
-					normals[idx * 3 + 2] += normal[2]
-				}
-			}
-		})
-
-		for (let i = 0; i < numVertices; i++) {
-			const nx = normals[i * 3]
-			const ny = normals[i * 3 + 1]
-			const nz = normals[i * 3 + 2]
-			const len = Math.hypot(nx, ny, nz)
-			if (len > 0) {
-				normals[i * 3] = nx / len
-				normals[i * 3 + 1] = ny / len
-				normals[i * 3 + 2] = nz / len
-			}
-		}
-
-		return normals
 	}
 
 	private getPositions(): number[] {

@@ -15,9 +15,9 @@ class Maze {
 		this.initCubes()
 	}
 
-	render(viewMatrix: mat4, projectionMatrix: mat4, lightDir: vec3) {
+	render(viewMatrix: mat4, projectionMatrix: mat4) {
 		for (const cube of this.cubes) {
-			cube.render(viewMatrix, projectionMatrix, lightDir)
+			cube.render(viewMatrix, projectionMatrix)
 		}
 	}
 

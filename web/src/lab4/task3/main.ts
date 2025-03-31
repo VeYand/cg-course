@@ -1,6 +1,5 @@
 import './index.css'
 import {DIRECTION, Game} from './Maze/Game'
-import {Settings} from './Settings/Settings'
 import {createShaderProgram} from './WebGLUtils'
 
 class App {
@@ -10,14 +9,7 @@ class App {
 	private game: Game
 	private handle: Map<DIRECTION, boolean> = new Map()
 
-	private lightIntensity = 1
-
 	constructor() {
-		const settings = new Settings((intensity: number) => {
-			this.lightIntensity = intensity
-		})
-		document.querySelector('#root')?.appendChild(settings.getElement())
-
 		this.canvas = document.createElement('canvas')
 		document.body.appendChild(this.canvas)
 		this.canvas.width = window.innerWidth
@@ -37,7 +29,7 @@ class App {
 
 	render = () => {
 		[...this.handle.entries()].map(value => value[1] && this.game.move(value[0]))
-		this.game.render(this.lightIntensity)
+		this.game.render()
 		requestAnimationFrame(this.render)
 	}
 
