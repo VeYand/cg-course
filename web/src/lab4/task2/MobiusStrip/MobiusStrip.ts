@@ -301,13 +301,11 @@ class MobiusStrip {
 
 	private computeNormals(): number[] {
 		const normals: number[] = []
-		const uMin = 0
-		const uMax = 2 * Math.PI
 		const vMin = -1
 		const vMax = 1
 
 		for (let i = 0; i <= this.segmentsU; i++) {
-			const u = uMin + ((uMax - uMin) * i) / this.segmentsU
+			const u = 2 * Math.PI * i / this.segmentsU
 			const cosU = Math.cos(u)
 			const sinU = Math.sin(u)
 			const cosU2 = Math.cos(u / 2)
@@ -342,13 +340,11 @@ class MobiusStrip {
 	// z(u,v) = (v/2) * sin(u/2)
 	private getPositions(): number[] {
 		const positions: number[] = []
-		const uMin = 0
-		const uMax = 2 * Math.PI
 		const vMin = -1
 		const vMax = 1
 
 		for (let i = 0; i <= this.segmentsU; i++) {
-			const u = uMin + ((uMax - uMin) * i) / this.segmentsU
+			const u = 2 * Math.PI * i / this.segmentsU
 			const cosU = Math.cos(u)
 			const sinU = Math.sin(u)
 			const cosU2 = Math.cos(u / 2)

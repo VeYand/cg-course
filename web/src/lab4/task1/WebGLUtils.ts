@@ -16,7 +16,8 @@ const vertexShaderSource = `
       vNormal = normalize(uNormalMatrix * aNormal);
     }
 `
-
+// TODO выяснить чем uniform отличает от attribute
+// TODO выяснить чем отличаются шейдеры, в чём они участвуют
 const fragmentShaderSource = `
 	precision mediump float;
 

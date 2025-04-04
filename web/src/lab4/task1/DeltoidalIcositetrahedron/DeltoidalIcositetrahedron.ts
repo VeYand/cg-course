@@ -1,5 +1,6 @@
 import {mat3, mat4, ReadonlyVec3, vec3} from 'gl-matrix'
 
+// TODO убрать ограничение , по прокрутке по X
 class DeltoidalIcositetrahedron {
 	private readonly positionBuffer: WebGLBuffer | null
 	private readonly colorBuffer: WebGLBuffer | null
@@ -42,14 +43,16 @@ class DeltoidalIcositetrahedron {
 
 	render(cameraRotationX: number, cameraRotationY: number, lightIntensity: number) {
 		const gl = this.gl
-		gl.clearColor(0.0, 0.0, 0.0, 0.1) // Clear to black, fully opaque
-		gl.clearDepth(1.0) // Clear everything
+		gl.clearColor(0.0, 0.0, 0.0, 0.0) // Clear to black, fully opaque
+		// gl.clearDepth(0.0) // TODO выяснить
 		gl.enable(gl.DEPTH_TEST) // Enable depth testing
-		gl.depthFunc(gl.LEQUAL) // Near things obscure far things
+		gl.depthFunc(gl.LEQUAL) //TODO выяснить, за что отвечает функция
+
+		gl.enable(gl.CULL_FACE)// todo выяснить что делвет этот режим
 
 		// Clear the canvas before we start drawing on it.
 
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		// Create a perspective matrix, a special matrix that is
 		// used to simulate the distortion of perspective in a camera.
@@ -66,8 +69,8 @@ class DeltoidalIcositetrahedron {
 
 		// note: glmatrix.js always has the first argument
 		// as the destination to receive the result.
-		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
-
+		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar) // TODO выяснить зачем нужны 2 отдельный матрицы проецирования и моделирования
+		// TODO объяснить как реализовано вращение
 		// Вычисляем положение камеры в сферических координатах
 		const distance = 6.0
 		const eye: ReadonlyVec3 = [
