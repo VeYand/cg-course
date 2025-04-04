@@ -52,7 +52,7 @@ class DeltoidalIcositetrahedron {
 
 		// Clear the canvas before we start drawing on it.
 
-		 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		// Create a perspective matrix, a special matrix that is
 		// used to simulate the distortion of perspective in a camera.
