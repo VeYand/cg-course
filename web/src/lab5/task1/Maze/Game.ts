@@ -1,5 +1,6 @@
 import {mat4, vec3} from 'gl-matrix'
 import {loadTexture} from '../../../common/WebGLUtils'
+import {Cube} from './Cube'
 import {Maze, WALL_TYPE} from './Maze'
 import {Plane} from './Plane'
 
@@ -12,8 +13,8 @@ enum DIRECTION {
 
 class Game {
 	private floor?: Plane
-	private ceiling?: Plane
 	private maze?: Maze
+	private skyBox?: Cube
 
 	private cameraPos = vec3.fromValues(1, 0.5, 1)
 	private cameraAngle = 0
@@ -51,7 +52,7 @@ class Game {
 				const centerZ = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
 
 				this.floor = new Plane(this.gl, this.shaderProgram, grassTexture, [centerX, 0, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize, 'bottom')
-				this.ceiling = new Plane(this.gl, this.shaderProgram, skyTexture, [centerX, 3.5, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize * 10, 'top')
+				this.skyBox = new Cube(this.gl, this.shaderProgram, skyTexture, [centerX, 0, centerZ], 100)
 			})
 	}
 
@@ -79,7 +80,7 @@ class Game {
 		mat4.lookAt(viewMatrix, this.cameraPos, center, up)
 
 		this.floor?.render(viewMatrix, projectionMatrix)
-		this.ceiling?.render(viewMatrix, projectionMatrix)
+		this.skyBox?.render(viewMatrix, projectionMatrix)
 		this.maze?.render(viewMatrix, projectionMatrix)
 	}
 
