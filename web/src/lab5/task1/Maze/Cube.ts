@@ -1,37 +1,35 @@
-import {mat4, vec3} from 'gl-matrix'
+import {mat4} from 'gl-matrix'
 
 class Cube {
 	private readonly positionBuffer: WebGLBuffer | null
-	private readonly colorBuffer: WebGLBuffer | null
-	private readonly edgeBuffer: WebGLBuffer | null
+	private readonly texCoordBuffer: WebGLBuffer | null
 	private readonly indexBuffer: WebGLBuffer | null
 
 	private readonly vertexPosition: number
-	private readonly vertexColor: number
+	private readonly vertexTexCoord: number
 	private readonly projectionMatrixLocation: WebGLUniformLocation | null
 	private readonly modelViewMatrixLocation: WebGLUniformLocation | null
+	private readonly samplerLocation: WebGLUniformLocation | null
 
-	private edgeCount = 0
 	private indicesCount = 0
-	private positions: number[] = []
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
-		private readonly color: vec3,
+		private readonly texture: WebGLTexture,
 		private readonly center: [number, number, number],
 		private readonly size: number,
 	) {
 		const buffers = this.initBuffers()
 		this.positionBuffer = buffers.position
-		this.colorBuffer = buffers.color
+		this.texCoordBuffer = buffers.texCoord
 		this.indexBuffer = buffers.indices
-		this.edgeBuffer = buffers.edges
 
 		this.vertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition')
-		this.vertexColor = gl.getAttribLocation(shaderProgram, 'aVertexColor')
+		this.vertexTexCoord = gl.getAttribLocation(shaderProgram, 'aTextureCoord')
 		this.projectionMatrixLocation = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix')
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
+		this.samplerLocation = gl.getUniformLocation(shaderProgram, 'uSampler')
 	}
 
 	render(viewMatrix: mat4, projectionMatrix: mat4) {
@@ -47,7 +45,7 @@ class Cube {
 		// buffer into the vertexPosition attribute.
 		this.setPositionAttribute()
 
-		this.setColorAttribute()
+		this.setTexCoordAttribute()
 
 		// Tell WebGL which indices to use to index the vertices
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer)
@@ -67,20 +65,16 @@ class Cube {
 			modelViewMatrix,
 		)
 
-		// Отрисовка граней
+		gl.activeTexture(gl.TEXTURE0)
+		gl.bindTexture(gl.TEXTURE_2D, this.texture)
+		gl.uniform1i(this.samplerLocation, 0)
+
 		{
 			const vertexCount = this.indicesCount
 			const type = gl.UNSIGNED_SHORT
 			const offset = 0
 			gl.drawElements(gl.TRIANGLES, vertexCount, type, offset)
-		}
-
-		// Отрисовка рёбер
-		{
-			gl.disableVertexAttribArray(this.vertexColor)
-			gl.vertexAttrib4f(this.vertexColor, 0, 0, 0, 1)
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.edgeBuffer)
-			gl.drawElements(gl.LINES, this.edgeCount, gl.UNSIGNED_SHORT, 0)
+			gl.disableVertexAttribArray(this.vertexTexCoord)
 		}
 	}
 
@@ -104,38 +98,30 @@ class Cube {
 		gl.enableVertexAttribArray(this.vertexPosition)
 	}
 
-	// Tell WebGL how to pull out the colors from the color buffer
-	// into the vertexColor attribute.
-	private setColorAttribute() {
+	private setTexCoordAttribute() {
 		const gl = this.gl
-		const numComponents = 4
+		if (this.vertexTexCoord < 0) {
+			return
+		}
+		const numComponents = 2
 		const type = gl.FLOAT
 		const normalize = false
 		const stride = 0
 		const offset = 0
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer)
-		gl.vertexAttribPointer(
-			this.vertexColor,
-			numComponents,
-			type,
-			normalize,
-			stride,
-			offset,
-		)
-		gl.enableVertexAttribArray(this.vertexColor)
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer)
+		gl.vertexAttribPointer(this.vertexTexCoord, numComponents, type, normalize, stride, offset)
+		gl.enableVertexAttribArray(this.vertexTexCoord)
 	}
 
 	private initBuffers() {
 		const positionBuffer = this.initPositionBuffer()
-		const colorBuffer = this.initColorBuffer()
+		const texCoordBuffer = this.initTexCoordBuffer()
 		const indexBuffer = this.initIndexBuffer()
-		const edgeBuffer = this.initEdgeBuffer()
 
 		return {
 			position: positionBuffer,
-			color: colorBuffer,
+			texCoord: texCoordBuffer,
 			indices: indexBuffer,
-			edges: edgeBuffer,
 		}
 	}
 
@@ -149,7 +135,6 @@ class Cube {
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
 		const positions = this.getPositions()
-		this.positions = positions.slice()
 
 		for (let i = 2; i < positions.length; i += 3) {
 			console.log((i - 2) / 3, [positions[i - 2], positions[i - 1], positions[i]])
@@ -163,35 +148,23 @@ class Cube {
 		return positionBuffer
 	}
 
-	private initColorBuffer(): WebGLBuffer | null {
+	private initTexCoordBuffer(): WebGLBuffer | null {
 		const gl = this.gl
-		const numVertices = this.positions.length / 3
-		const colors: number[] = []
-		for (let i = 0; i < numVertices; i++) {
-			colors.push(this.color[0], this.color[1], this.color[2], 1.0)
-		}
-		const colorBuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW)
+		const texCoordBuffer = gl.createBuffer()
+		gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
 
-		return colorBuffer
-	}
-
-	private initEdgeBuffer(): WebGLBuffer | null {
-		const gl = this.gl
-		const edgeIndices: number[] = []
-		this.getLineFaces().forEach(item => {
-			if (item.length > 1) {
-				// @ts-expect-error
-				edgeIndices.push(item[0], item[1])
-			}
-		})
-
-		const edgeBuffer = gl.createBuffer()
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, edgeBuffer)
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(edgeIndices), gl.STATIC_DRAW)
-		this.edgeCount = edgeIndices.length
-		return edgeBuffer
+		const texCoords = [
+			0, 0,
+			1, 0,
+			0, 1,
+			1, 1,
+			0, 0,
+			1, 0,
+			0, 1,
+			1, 1,
+		]
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW)
+		return texCoordBuffer
 	}
 
 	private initIndexBuffer(): WebGLBuffer | null {
@@ -249,26 +222,6 @@ class Cube {
 			[7, 1, 5],
 			[7, 5, 4],
 			[7, 4, 6],
-		]
-	}
-
-	private getLineFaces(): number[][] {
-		return [
-			[0, 1],
-			[2, 3],
-			[4, 5],
-			[6, 7],
-
-			[0, 4],
-			[1, 5],
-			[2, 6],
-			[3, 7],
-
-			[0, 2],
-			[1, 3],
-			[4, 6],
-			[5, 7],
-			[6, 4],
 		]
 	}
 }

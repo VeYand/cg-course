@@ -1,4 +1,4 @@
-import {vec3, mat4} from 'gl-matrix'
+import {mat4} from 'gl-matrix'
 import {Cube} from './Cube'
 
 class Maze {
@@ -10,6 +10,7 @@ class Maze {
 	constructor(
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
+		private readonly cubeTexture: WebGLTexture,
 	) {
 		this.generateMaze()
 		this.initCubes()
@@ -62,15 +63,7 @@ class Maze {
 					const x = j * this.CELL_SIZE + this.CELL_SIZE / 2
 					const z = i * this.CELL_SIZE + this.CELL_SIZE / 2
 					const y = 0.5
-
-					let color: vec3
-					if (i === 0 || j === 0 || i === this.MAZE_SIZE - 1 || j === this.MAZE_SIZE - 1) {
-						color = vec3.fromValues(1, 0, 0)
-					}
-					else {
-						color = vec3.fromValues(0.3, i / this.MAZE_SIZE, j / this.MAZE_SIZE)
-					}
-					const cube = new Cube(this.gl, this.shaderProgram, color, [x, y, z], this.CELL_SIZE)
+					const cube = new Cube(this.gl, this.shaderProgram, this.cubeTexture, [x, y, z], this.CELL_SIZE)
 					this.cubes.push(cube)
 				}
 			}

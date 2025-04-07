@@ -1,4 +1,5 @@
 import {mat4, vec3} from 'gl-matrix'
+import {loadTexture} from '../WebGLUtils'
 import {Maze} from './Maze'
 import {Plane} from './Plane'
 
@@ -10,9 +11,9 @@ enum DIRECTION {
 }
 
 class Game {
-	private readonly floor: Plane
-	private readonly ceiling: Plane
-	private readonly maze: Maze
+	private floor?: Plane
+	private ceiling?: Plane
+	private maze?: Maze
 
 	private cameraPos = vec3.fromValues(1, 0.5, 1)
 	private cameraAngle = 0
@@ -24,16 +25,20 @@ class Game {
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
 	) {
-		const floorColor = vec3.fromValues(0.992, 0.9176, 0.8549)
-		const ceilingColor = vec3.fromValues(0.717, 0.87, 0.909)
+		const wallTexturePromise = loadTexture(this.gl, '/textures/wall.jpg')
+		const grassTexturePromise = loadTexture(this.gl, '/textures/grass.jpg')
+		const skyTexturePromise = loadTexture(this.gl, '/textures/sky.jpg')
 
-		this.maze = new Maze(this.gl, this.shaderProgram)
+		Promise.all([wallTexturePromise, grassTexturePromise, skyTexturePromise])
+			.then(([wallTexture, grassTexture, skyTexture]) => {
+				const maze = new Maze(this.gl, this.shaderProgram, wallTexture)
+				this.maze = maze
+				const centerX = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
+				const centerZ = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
 
-		const centerX = (this.maze.getSize().mazeSize * this.maze.getSize().cellSize) / 2
-		const centerZ = (this.maze.getSize().mazeSize * this.maze.getSize().cellSize) / 2
-
-		this.floor = new Plane(this.gl, this.shaderProgram, floorColor, [centerX, 0, centerZ], this.maze.getSize().mazeSize * this.maze.getSize().cellSize, 'bottom')
-		this.ceiling = new Plane(this.gl, this.shaderProgram, ceilingColor, [centerX, 1, centerZ], this.maze.getSize().mazeSize * this.maze.getSize().cellSize, 'top')
+				this.floor = new Plane(this.gl, this.shaderProgram, grassTexture, [centerX, 0, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize, 'bottom')
+				this.ceiling = new Plane(this.gl, this.shaderProgram, skyTexture, [centerX, 5, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize * 10, 'top')
+			})
 	}
 
 	render() {
@@ -59,9 +64,9 @@ class Game {
 		const viewMatrix = mat4.create()
 		mat4.lookAt(viewMatrix, this.cameraPos, center, up)
 
-		this.floor.render(viewMatrix, projectionMatrix)
-		this.ceiling.render(viewMatrix, projectionMatrix)
-		this.maze.render(viewMatrix, projectionMatrix)
+		this.floor?.render(viewMatrix, projectionMatrix)
+		this.ceiling?.render(viewMatrix, projectionMatrix)
+		this.maze?.render(viewMatrix, projectionMatrix)
 	}
 
 	move(direction: DIRECTION) {
@@ -90,6 +95,9 @@ class Game {
 	}
 
 	private canMoveTo(newPos: vec3): boolean {
+		if (!this.maze) {
+			return false
+		}
 		const cellX = Math.floor(newPos[0])
 		const cellZ = Math.floor(newPos[2])
 		const mazeSize = this.maze.getSize().mazeSize
