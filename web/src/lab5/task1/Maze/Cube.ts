@@ -154,14 +154,35 @@ class Cube {
 		gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
 
 		const texCoords = [
-			0, 0,
-			1, 0,
-			0, 1,
-			1, 1,
-			0, 0,
-			1, 0,
-			0, 1,
-			1, 1,
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+
+			0.0, 0.0,
+			0.0, 1.0,
+			1.0, 1.0,
+			1.0, 0.0,
+
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+
+			0.0, 0.0,
+			0.0, 1.0,
+			1.0, 1.0,
+			1.0, 0.0,
+
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
 		]
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW)
 		return texCoordBuffer
@@ -196,32 +217,53 @@ class Cube {
 	private getPositions(): number[] {
 		const half = this.size / 2
 		return [
-			-half, -half, -half,
 			-half, -half, half,
+			half, -half, half,
+			half, half, half,
+			-half, half, half,
+
+			-half, -half, -half,
+			-half, half, -half,
+			half, half, -half,
+			half, -half, -half,
+
 			-half, half, -half,
 			-half, half, half,
+			half, half, half,
+			half, half, -half,
+
+			-half, -half, -half,
 			half, -half, -half,
 			half, -half, half,
+			-half, -half, half,
+
+			half, -half, -half,
 			half, half, -half,
 			half, half, half,
+			half, -half, half,
+
+			-half, -half, -half,
+			-half, -half, half,
+			-half, half, half,
+			-half, half, -half,
 		]
 	}
 
 	private getTriangleFaces(): number[][] {
 		return [
+			[0, 1, 2],
 			[0, 2, 3],
-			[0, 3, 1],
-			[0, 6, 2],
-			[0, 4, 6],
-			[0, 4, 5],
-			[0, 5, 1],
+			[4, 5, 6],
+			[4, 6, 7],
+			[8, 9, 10],
+			[8, 10, 11],
 
-			[7, 6, 2],
-			[7, 2, 3],
-			[7, 3, 1],
-			[7, 1, 5],
-			[7, 5, 4],
-			[7, 4, 6],
+			[12, 13, 14],
+			[12, 14, 15],
+			[16, 17, 18],
+			[16, 18, 19],
+			[20, 21, 22],
+			[20, 22, 23],
 		]
 	}
 }

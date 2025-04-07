@@ -1,6 +1,6 @@
 import {mat4, vec3} from 'gl-matrix'
 import {loadTexture} from '../../../common/WebGLUtils'
-import {Maze} from './Maze'
+import {Maze, WALL_TYPE} from './Maze'
 import {Plane} from './Plane'
 
 enum DIRECTION {
@@ -25,19 +25,33 @@ class Game {
 		private readonly gl: WebGLRenderingContext,
 		private readonly shaderProgram: WebGLProgram,
 	) {
-		const wallTexturePromise = loadTexture(this.gl, '/textures/wall.jpg')
 		const grassTexturePromise = loadTexture(this.gl, '/textures/grass.jpg')
 		const skyTexturePromise = loadTexture(this.gl, '/textures/sky.jpg')
 
-		Promise.all([wallTexturePromise, grassTexturePromise, skyTexturePromise])
-			.then(([wallTexture, grassTexture, skyTexture]) => {
-				const maze = new Maze(this.gl, this.shaderProgram, wallTexture)
+		const brickWallTexturePromise = loadTexture(this.gl, '/textures/brick.jpg')
+		const badWallTexturePromise = loadTexture(this.gl, '/textures/bad.jpg')
+		const concreteWallTexturePromise = loadTexture(this.gl, '/textures/concrete.jpg')
+		const stoneWallTexturePromise = loadTexture(this.gl, '/textures/stone.jpg')
+		const whiteWallTexturePromise = loadTexture(this.gl, '/textures/white.jpg')
+		const mouldWallTexturePromise = loadTexture(this.gl, '/textures/mould.jpg')
+
+		Promise.all([grassTexturePromise, skyTexturePromise, brickWallTexturePromise, badWallTexturePromise, concreteWallTexturePromise, stoneWallTexturePromise, whiteWallTexturePromise, mouldWallTexturePromise])
+			.then(([grassTexture, skyTexture, brickWallTexture, badWallTexture, concreteWallTexture, stoneWallTexture, whiteWallTexture, mouldWallTexture]) => {
+				const maze = new Maze(this.gl, this.shaderProgram, {
+					[WALL_TYPE.EMPTY]: brickWallTexture,
+					[WALL_TYPE.BRICK]: brickWallTexture,
+					[WALL_TYPE.BAD]: badWallTexture,
+					[WALL_TYPE.CONCRETE]: concreteWallTexture,
+					[WALL_TYPE.STONE]: stoneWallTexture,
+					[WALL_TYPE.WHITE]: whiteWallTexture,
+					[WALL_TYPE.MOULD]: mouldWallTexture,
+				})
 				this.maze = maze
 				const centerX = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
 				const centerZ = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
 
 				this.floor = new Plane(this.gl, this.shaderProgram, grassTexture, [centerX, 0, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize, 'bottom')
-				this.ceiling = new Plane(this.gl, this.shaderProgram, skyTexture, [centerX, 5, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize * 10, 'top')
+				this.ceiling = new Plane(this.gl, this.shaderProgram, skyTexture, [centerX, 3.5, centerZ], maze.getSize().mazeSize * maze.getSize().cellSize * 10, 'top')
 			})
 	}
 
