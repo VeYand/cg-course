@@ -1,6 +1,7 @@
+import {createShaderProgram} from '../../common/WebGLUtils'
 import './index.css'
 import {DIRECTION, Game} from './Maze/Game'
-import {createShaderProgram} from './WebGLUtils'
+import {fragmentShaderSource, vertexShaderSource} from './shaders'
 
 class App {
 	private readonly canvas: HTMLCanvasElement
@@ -19,7 +20,7 @@ class App {
 			throw new Error('WebGL не поддерживается')
 		}
 		this.gl = gl
-		this.program = createShaderProgram(gl)
+		this.program = createShaderProgram(gl, vertexShaderSource, fragmentShaderSource)
 		this.game = new Game(gl, this.program)
 
 		window.addEventListener('resize', this.resizeCanvas)

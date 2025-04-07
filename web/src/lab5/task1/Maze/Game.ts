@@ -1,5 +1,5 @@
 import {mat4, vec3} from 'gl-matrix'
-import {loadTexture} from '../WebGLUtils'
+import {loadTexture} from '../../../common/WebGLUtils'
 import {Maze} from './Maze'
 import {Plane} from './Plane'
 
