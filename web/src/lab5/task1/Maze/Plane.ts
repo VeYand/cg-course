@@ -33,7 +33,8 @@ class Plane {
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 		this.samplerLocation = gl.getUniformLocation(shaderProgram, 'uSampler')
 	}
-
+	// TODO использовать mid map чтобы убрать проблему с текстурами
+	// TODO добавить освещение
 	render(viewMatrix: mat4, projectionMatrix: mat4) {
 		const gl = this.gl
 
