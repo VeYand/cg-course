@@ -29,7 +29,11 @@ class App {
 	}
 
 	render = () => {
-		[...this.handle.entries()].map(value => value[1] && this.game.move(value[0]))
+		[...this.handle.entries()].forEach(([direction, active]) => {
+			if (active) {
+				this.game.move(direction)
+			}
+		})
 		this.game.render()
 		requestAnimationFrame(this.render)
 	}

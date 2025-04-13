@@ -1,5 +1,6 @@
 import {mat4} from 'gl-matrix'
 import {Cube} from './Cube'
+import {GLContext} from './GLContext'
 
 enum WALL_TYPE {
 	EMPTY = 0,
@@ -18,17 +19,16 @@ class Maze {
 	private readonly CELL_SIZE = 1.0
 
 	constructor(
-		private readonly gl: WebGLRenderingContext,
-		private readonly shaderProgram: WebGLProgram,
+		private readonly ctx: GLContext,
 		private readonly textures: Record<WALL_TYPE, WebGLTexture>,
 	) {
 		this.generateMaze()
 		this.initCubes()
 	}
 
-	render(viewMatrix: mat4, projectionMatrix: mat4) {
+	render(viewMatrix: mat4) {
 		for (const cube of this.cubes) {
-			cube.render(viewMatrix, projectionMatrix)
+			cube.render(viewMatrix)
 		}
 	}
 
@@ -82,7 +82,7 @@ class Maze {
 					const x = j * this.CELL_SIZE + this.CELL_SIZE / 2
 					const z = i * this.CELL_SIZE + this.CELL_SIZE / 2
 					const y = 0.5
-					const cube = new Cube(this.gl, this.shaderProgram, this.textures[type], [x, y, z], this.CELL_SIZE)
+					const cube = new Cube(this.ctx, this.textures[type], [x, y, z], this.CELL_SIZE)
 					this.cubes.push(cube)
 				}
 			}
