@@ -1,5 +1,6 @@
 import {mat4, vec3} from 'gl-matrix'
 import {loadTexture} from '../../../common/WebGLUtils'
+import {Ball} from './Ball'
 import {Cube} from './Cube'
 import {Cubes, CUBE_TYPE} from './Cubes'
 import {GLContext} from './GLContext'
@@ -15,6 +16,7 @@ class Game {
 	private floor?: Cube
 	private maze?: Cubes
 	private skyBox?: Cube
+	private ball?: Ball
 
 	private cameraPos = vec3.fromValues(8, 20, -8)
 	private cameraCenter = vec3.fromValues(8, -12, 16)
@@ -64,6 +66,7 @@ class Game {
 					height: 80,
 					depth: 170,
 				})
+				this.ball = new Ball(this.ctx, brickWallTexture, [centerX, -4.5, centerZ], 0.5)
 			})
 	}
 
@@ -96,6 +99,7 @@ class Game {
 		this.floor?.render(viewMatrix)
 		this.skyBox?.render(viewMatrix)
 		this.maze?.render(viewMatrix)
+		this.ball?.render(viewMatrix)
 	}
 
 	move(direction: DIRECTION) {
