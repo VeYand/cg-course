@@ -4,6 +4,7 @@ import {Ball} from './Ball'
 import {Cube} from './Cube'
 import {Cubes, CUBE_TYPE} from './Cubes'
 import {GLContext} from './GLContext'
+import {Slider} from './Slider'
 
 enum DIRECTION {
 	LEFT,
@@ -17,6 +18,7 @@ class Game {
 	private maze?: Cubes
 	private skyBox?: Cube
 	private ball?: Ball
+	private slider?: Slider
 
 	private cameraPos = vec3.fromValues(8, 20, -8)
 	private cameraCenter = vec3.fromValues(8, -12, 16)
@@ -66,7 +68,12 @@ class Game {
 					height: 80,
 					depth: 170,
 				})
-				this.ball = new Ball(this.ctx, brickWallTexture, [centerX, -4.5, centerZ], 0.5)
+				this.ball = new Ball(this.ctx, brickWallTexture, [centerX, -5, 3], 0.5)
+				this.slider = new Slider(this.ctx, badWallTexture, [centerX, -5, 2], {
+					width: 4,
+					height: 1,
+					depth: 1,
+				})
 			})
 	}
 
@@ -100,6 +107,7 @@ class Game {
 		this.skyBox?.render(viewMatrix)
 		this.maze?.render(viewMatrix)
 		this.ball?.render(viewMatrix)
+		this.slider?.render(viewMatrix)
 	}
 
 	move(direction: DIRECTION) {
