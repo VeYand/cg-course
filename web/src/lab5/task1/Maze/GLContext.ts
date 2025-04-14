@@ -11,8 +11,6 @@ type GLContext = {
 	modelMatrixLocation: WebGLUniformLocation | null,
 	normalMatrixLocation: WebGLUniformLocation | null,
 	samplerLocation: WebGLUniformLocation | null,
-	lightWorldPositionLocation: WebGLUniformLocation | null,
-	viewWorldPositionLocation: WebGLUniformLocation | null,
 	lightColorLocation: WebGLUniformLocation | null,
 	specularColorLocation: WebGLUniformLocation | null,
 	shininessLocation: WebGLUniformLocation | null,

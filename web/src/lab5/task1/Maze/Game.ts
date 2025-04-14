@@ -89,9 +89,6 @@ class Game {
 		const viewMatrix = mat4.create()
 		mat4.lookAt(viewMatrix, this.cameraPos, center, up)
 
-		const lightWorldPosition = this.cameraPos
-		const viewWorldPosition = this.cameraPos
-
 		gl.useProgram(this.ctx.shaderProgram)
 
 		gl.uniformMatrix4fv(
@@ -99,14 +96,19 @@ class Game {
 			false,
 			projectionMatrix,
 		)
-		gl.uniform3fv(
-			this.ctx.lightWorldPositionLocation,
-			lightWorldPosition,
+
+		const direction = vec3.fromValues(
+			Math.sin(this.cameraAngle),
+			-0.3,
+			Math.cos(this.cameraAngle),
 		)
+		vec3.normalize(direction, direction)
+
 		gl.uniform3fv(
-			this.ctx.viewWorldPositionLocation,
-			viewWorldPosition,
+			this.ctx.gl.getUniformLocation(this.ctx.shaderProgram, 'u_lightDirection'),
+			direction,
 		)
+
 
 		this.floor?.render(viewMatrix)
 		this.skyBox?.render(viewMatrix)
@@ -168,8 +170,6 @@ class Game {
 			normalMatrixLocation: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
 			samplerLocation: gl.getUniformLocation(shaderProgram, 'uSampler'),
 
-			lightWorldPositionLocation: gl.getUniformLocation(shaderProgram, 'u_lightWorldPosition'),
-			viewWorldPositionLocation: gl.getUniformLocation(shaderProgram, 'u_viewWorldPosition'),
 			lightColorLocation: gl.getUniformLocation(shaderProgram, 'u_lightColor'),
 			specularColorLocation: gl.getUniformLocation(shaderProgram, 'u_specularColor'),
 			shininessLocation: gl.getUniformLocation(shaderProgram, 'u_shininess'),
