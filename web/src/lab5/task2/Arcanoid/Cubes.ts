@@ -33,13 +33,6 @@ class Cubes {
 		}
 	}
 
-	getSize() {
-		return {
-			cellSize: this.CELL_SIZE,
-			mazeSize: this.MAZE_SIZE,
-		}
-	}
-
 	private generateMaze() {
 		const empty = CUBE_TYPE.EMPTY
 		const brick = CUBE_TYPE.BRICK
@@ -49,8 +42,17 @@ class Cubes {
 		const white = CUBE_TYPE.WHITE
 		const mould = CUBE_TYPE.MOULD
 
+		// 4-5 линий в начале должны быть всегда пустыми
 		this.maze = [
 			[brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
 			[brick, empty, empty, empty, empty, empty, empty, concrete, empty, empty, white, empty, white, empty, white, brick],
 			[brick, empty, bad, bad, empty, concrete, empty, white, empty, empty, white, empty, white, empty, white, brick],
 			[brick, empty, bad, empty, empty, concrete, empty, white, empty, empty, white, empty, white, empty, white, brick],
@@ -64,14 +66,15 @@ class Cubes {
 			[brick, empty, empty, empty, empty, empty, empty, stone, empty, empty, bad, empty, bad, empty, bad, brick],
 			[brick, empty, white, white, empty, white, white, stone, empty, empty, empty, empty, empty, empty, empty, brick],
 			[brick, empty, white, white, empty, white, empty, stone, empty, white, empty, bad, empty, bad, empty, brick],
-			[brick, empty, empty, white, empty, empty, empty, empty, empty, white, empty, white, empty, white, empty, brick],
+			[brick, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, brick],
 			[brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick, brick],
 		]
 	}
 
 	private initCubes() {
-		for (let i = 0; i < this.MAZE_SIZE; i++) {
-			for (let j = 0; j < this.MAZE_SIZE; j++) {
+		for (let i = 0; i < this.maze.length; i++) {
+			// @ts-expect-error
+			for (let j = 0; j < this.maze[i].length; j++) {
 				// @ts-expect-error
 				const type = this.maze[i][j]
 				if (type !== undefined && type !== CUBE_TYPE.EMPTY) {

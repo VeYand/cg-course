@@ -16,9 +16,8 @@ class Game {
 	private maze?: Cubes
 	private skyBox?: Cube
 
-	private cameraPos = vec3.fromValues(-6, 2, -6)
-	private cameraCenter = vec3.fromValues(16, -8, 16)
-	private sliderSpeed = 0.5
+	private cameraPos = vec3.fromValues(8, 20, -8)
+	private cameraCenter = vec3.fromValues(8, -12, 16)
 
 	constructor(gl: WebGLRenderingContext, shaderProgram: WebGLProgram) {
 		this.ctx = this.initContext(gl, shaderProgram)
@@ -53,17 +52,17 @@ class Game {
 					[CUBE_TYPE.MOULD]: mouldWallTexture,
 				}, [0, -5, 0])
 				this.maze = maze
-				const centerX = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
-				const centerZ = (maze.getSize().mazeSize * maze.getSize().cellSize) / 2
+				const centerX = 16 / 2
+				const centerZ = 24 / 2
 				this.floor = new Cube(this.ctx, grassTexture, [centerX, -5.25, centerZ], {
 					width: 16,
 					height: 0.5,
-					depth: 16,
+					depth: 24,
 				})
 				this.skyBox = new Cube(this.ctx, skyTexture, [centerX, 0, centerZ], {
-					width: 100,
-					height: 100,
-					depth: 100,
+					width: 170,
+					height: 80,
+					depth: 170,
 				})
 			})
 	}
@@ -78,7 +77,7 @@ class Game {
 		const fieldOfView = (45 * Math.PI) / 180
 		const aspect = gl.canvas.width / gl.canvas.height
 		const zNear = 0.1
-		const zFar = 100.0
+		const zFar = 200.0
 		const projectionMatrix = mat4.create()
 		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
 
