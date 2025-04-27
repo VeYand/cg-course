@@ -15,5 +15,5 @@ pip install -r requirements.txt
 
 Запуск
 ```
-python src/<номер лаборатной>/<номер задания>/main.py
+cd src/<номер лаборатной>/<номер задания> && python main.py
 ```
