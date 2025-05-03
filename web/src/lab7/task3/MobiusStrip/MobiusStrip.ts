@@ -48,7 +48,7 @@ class MobiusStrip {
 
 		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
 
-		const distance = 16.0
+		const distance = 6.0
 		const eye: ReadonlyVec3 = [
 			distance * Math.cos(cameraRotationX) * Math.sin(cameraRotationY),
 			distance * Math.sin(cameraRotationX),

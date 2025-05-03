@@ -18,29 +18,20 @@ vec3 computeMobius(float u, float v) {
 }
 
 vec3 computeKlein(float u, float v) {
-	v = (v + 1.0) * 2.0 * PI;
+    v *= (v + 1.0) * PI;
 
-    float halfU = u * 0.5;
-    float halfV = v * 0.5;
-	
-	float sinHalfU = sin(halfU);
-	float cosHalfU = cos(halfU);
-	float sinHalfV = sin(halfV);
-	float cosHalfV = cos(halfV);
-	
-	float sinU = sin(u);
-	float cosU = cos(u);
-	float sinV = sin(v);
-	float cosV = cos(v);
-	
-	float r = 2.0;
-	
-	float factor = (r + cosHalfU * sinV) - sinHalfU * sin(2.0 * v); 
-	float x = factor * cosU;
-	float y = factor * sinU;
-	float z = sinHalfU * sinV + cosHalfU * sin(2.0 * v);
-
-    return vec3(x, y, z);
+    float x, y, z;
+    if (u < PI) {
+        x = 3.0 * cos(u) * (1.0 + sin(u)) + (2.0 * (1.0 - cos(u)/2.0)) * cos(u) * cos(v);
+        y = 8.0 * sin(u) + (2.0 * (1.0 - cos(u)/2.0)) * sin(u) * cos(v);
+        z = (2.0 * (1.0 - cos(u)/2.0)) * sin(v);
+    } else {
+        x = 3.0 * cos(u) * (1.0 + sin(u)) + (2.0 * (1.0 - cos(u)/2.0)) * cos(v + PI);
+        y = 8.0 * sin(u);
+        z = (2.0 * (1.0 - cos(u)/2.0)) * sin(v);
+    }
+    
+    return vec3(x/3.0, -y/3.0, z/3.0);
 }
 
 void main(void) {
