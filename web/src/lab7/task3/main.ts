@@ -14,6 +14,7 @@ class App {
 	private lastMouseY = 0
 	private cameraRotationX = 0
 	private cameraRotationY = 0
+	private time = 0
 
 	constructor() {
 		this.canvas = document.createElement('canvas')
@@ -37,7 +38,9 @@ class App {
 	}
 
 	render = () => {
-		this.mobiusStrip.render(this.cameraRotationX, this.cameraRotationY)
+		this.time = Date.now() * 0.001
+		const morphFactor = (Math.sin(this.time) + 1) / 2
+		this.mobiusStrip.render(this.cameraRotationX, this.cameraRotationY, morphFactor)
 		requestAnimationFrame(this.render)
 	}
 

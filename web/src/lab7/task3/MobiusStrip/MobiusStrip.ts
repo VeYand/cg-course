@@ -8,11 +8,11 @@ class MobiusStrip {
 	private readonly projectionMatrixLocation: WebGLUniformLocation | null
 	private readonly modelViewMatrixLocation: WebGLUniformLocation | null
 	private readonly colorLocation: WebGLUniformLocation | null
-
+	private readonly timeLocation: WebGLUniformLocation | null
 
 	private edgeCount = 0
 	private readonly segmentsU = 100
-	private readonly segmentsV = 5
+	private readonly segmentsV = 40
 
 	constructor(
 		private readonly gl: WebGLRenderingContext,
@@ -28,9 +28,10 @@ class MobiusStrip {
 		)
 		this.modelViewMatrixLocation = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
 		this.colorLocation = gl.getUniformLocation(shaderProgram, 'uColor')
+		this.timeLocation = gl.getUniformLocation(shaderProgram, 'uTime')
 	}
 
-	render(cameraRotationX: number, cameraRotationY: number) {
+	render(cameraRotationX: number, cameraRotationY: number, time: number) {
 		const gl = this.gl
 		gl.clearColor(0.0, 0.0, 0.0, 0.1)
 		gl.clearDepth(1.0)
@@ -47,7 +48,7 @@ class MobiusStrip {
 
 		mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar)
 
-		const distance = 6.0
+		const distance = 16.0
 		const eye: ReadonlyVec3 = [
 			distance * Math.cos(cameraRotationX) * Math.sin(cameraRotationY),
 			distance * Math.sin(cameraRotationX),
@@ -66,6 +67,7 @@ class MobiusStrip {
 
 		gl.useProgram(this.shaderProgram)
 
+		gl.uniform1f(this.timeLocation, time)
 		gl.uniform4f(
 			this.colorLocation,
 			0.2,
@@ -148,32 +150,20 @@ class MobiusStrip {
 		return edgeBuffer
 	}
 
-	// x(u,v) = (1 + v/2 * cos(u/2)) * cos(u)
-	// y(u,v) = (1 + v/2 * cos(u/2)) * sin(u)
-	// z(u,v) = (v/2) * sin(u/2)
 	private getPositions(): number[] {
 		const positions: number[] = []
+		const uMin = 0
+		const uMax = 2 * Math.PI
 		const vMin = -1
 		const vMax = 1
 
 		for (let i = 0; i <= this.segmentsU; i++) {
-			const u = 2 * Math.PI * i / this.segmentsU
-			const cosU = Math.cos(u)
-			const sinU = Math.sin(u)
-			const cosU2 = Math.cos(u / 2)
-			const sinU2 = Math.sin(u / 2)
+			const u = uMin + (uMax - uMin) * i / this.segmentsU
 			for (let j = 0; j <= this.segmentsV; j++) {
-				const v = vMin + ((vMax - vMin) * j) / this.segmentsV
-				const factor = 1 + (v / 2) * cosU2
-				const x = factor * cosU
-				// const y = factor * sinU
-				// const z = (v / 2) * sinU2
-				const z = factor * sinU
-				const y = -(v / 2) * sinU2
-				positions.push(x, y, z)
+				const v = vMin + (vMax - vMin) * j / this.segmentsV
+				positions.push(u, v, 0)
 			}
 		}
-
 		return positions
 	}
 
