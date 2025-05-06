@@ -5,7 +5,7 @@ from graphics_engine import IGraphicsEngine
 
 FOV = 50
 NEAR = 0.1
-FAR = 100
+FAR = 300
 SPEED = 0.03
 SENSITIVITY = 0.04
 
@@ -60,17 +60,17 @@ class Camera:
     def move(self) -> None:
         velocity = SPEED * self.app.delta_time
         keys = pg.key.get_pressed()
-        if keys[pg.K_w]:
+        if keys[pg.K_w] or keys[pg.K_UP]:
             self.position += self.forward * velocity
-        if keys[pg.K_s]:
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
             self.position -= self.forward * velocity
-        if keys[pg.K_a]:
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
             self.position -= self.right * velocity
-        if keys[pg.K_d]:
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
             self.position += self.right * velocity
-        if keys[pg.K_q]:
+        if keys[pg.K_q] or keys[pg.K_LSHIFT] or keys[pg.K_RSHIFT]:
             self.position += self.up * velocity
-        if keys[pg.K_e]:
+        if keys[pg.K_e] or keys[pg.K_LCTRL] or keys[pg.K_RCTRL]:
             self.position -= self.up * velocity
 
     def get_view_matrix(self) -> mat4x4:
