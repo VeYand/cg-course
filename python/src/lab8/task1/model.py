@@ -101,6 +101,10 @@ class Ferret(ExtendedBaseModel):
                  pos=(0, 0, 0), rot=(-90, 0, 0), scale=(1, 1, 1)) -> None:
         super().__init__(app, vao_name, tex_id, pos, rot, scale)
 
+class Hawk(ExtendedBaseModel):
+    def __init__(self, app: IGraphicsEngine, vao_name='hawk', tex_id='hawk',
+                 pos=(0, 0, 0), rot=(-90, 0, 0), scale=(1, 1, 1)) -> None:
+        super().__init__(app, vao_name, tex_id, pos, rot, scale)
 
 class AdvancedSkyBox(BaseModel):
     texture: Texture | TextureCube

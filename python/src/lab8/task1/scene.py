@@ -13,7 +13,10 @@ class Scene:
 
     def load(self) -> None:
         self.add_object(
-            Ferret(self.app, pos=(0, -10, -70), rot=(-90, 90, 0))
+            Ferret(self.app, pos=(0, -10, -70), rot=(-90, 90, 0)),
+        )
+        self.add_object(
+            Hawk(self.app, pos=(25, 15, -30), rot=(-90, 90, 0)),
         )
 
     def add_object(self, obj: ExtendedBaseModel) -> None:

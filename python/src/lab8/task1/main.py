@@ -56,7 +56,7 @@ class GraphicsEngine(IGraphicsEngine):
                 sys.exit()
 
     def render(self) -> None:
-        self.ctx.clear(red=0.08, green=0.16, blue=0.18)
+        self.ctx.clear(red=0.0, green=0.0, blue=0.0)
         self.scene_renderer.render()
         pg.display.flip()
 

@@ -11,7 +11,7 @@ class Light:
     Is: vec3
     m_view_light: mat4x4
 
-    def __init__(self, position=(50, 50, -10), color=(1, 1, 1)) -> None:
+    def __init__(self, position=(80, 80, 0), color=(1, 1, 1)) -> None:
         self.position = glm.vec3(position)
         self.color = glm.vec3(color)
         self.direction = glm.vec3(0, 0, 0)
