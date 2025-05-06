@@ -2,21 +2,22 @@ from model import *
 
 
 class Scene:
-    def __init__(self, app):
+    app: IGraphicsEngine
+    objects: list[ExtendedBaseModel] = []
+    skybox: AdvancedSkyBox
+
+    def __init__(self, app: IGraphicsEngine) -> None:
         self.app = app
-        self.objects = []
         self.load()
-        # skybox
         self.skybox = AdvancedSkyBox(app)
 
-    def add_object(self, obj):
+    def load(self) -> None:
+        self.add_object(
+            Ferret(self.app, pos=(0, -10, -70), rot=(-90, 90, 0))
+        )
+
+    def add_object(self, obj: ExtendedBaseModel) -> None:
         self.objects.append(obj)
 
-    def load(self):
-        app = self.app
-        add = self.add_object
-
-        add(Ferret(app, pos=(30, 0, -10)))
-
-    def update(self):
+    def update(self) -> None:
         ...
