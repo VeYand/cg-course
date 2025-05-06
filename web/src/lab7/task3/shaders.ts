@@ -56,3 +56,4 @@ const fragmentShaderSource = `
 `
 
 export {vertexShaderSource, fragmentShaderSource}
+// x × (1 − a) + y × a.

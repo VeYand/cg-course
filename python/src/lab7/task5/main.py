@@ -13,11 +13,7 @@ class App(QOpenGLWidget):
         super().__init__(parent)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
-        self.timer.start(16)  # ~60 FPS
-
         self.shader_program: Optional[int] = None
-        self.vao: Optional[int] = None
-        self.vbo: Optional[int] = None
 
         self.circles = [
             Circle(0.3, (-0.7, -0.2)),
@@ -26,24 +22,9 @@ class App(QOpenGLWidget):
         ]
 
     def initializeGL(self) -> None:
-        glClearColor(0.0, 0.0, 0.0, 1.0)
-        glEnable(GL_PROGRAM_POINT_SIZE)
-
-        self.vao = glGenVertexArrays(1)
-        glBindVertexArray(self.vao)
-
-        self.vbo = glGenBuffers(1)
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
-        point_data = np.array([0.0, 0.0], dtype=np.float32)
-        glBufferData(GL_ARRAY_BUFFER, point_data.nbytes, point_data, GL_STATIC_DRAW)
-
-        glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, None)
-
         self.shader_program = Shader().get_program('circle')
-
         for circle in self.circles:
-            circle.init_gl(self.shader_program, self.vao)
+            circle.init_gl(self.shader_program)
 
     def paintGL(self) -> None:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -52,7 +33,6 @@ class App(QOpenGLWidget):
 
     def resizeGL(self, w: int, h: int) -> None:
         glViewport(0, 0, w, h)
-
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
