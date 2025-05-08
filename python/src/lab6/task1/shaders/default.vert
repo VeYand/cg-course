@@ -28,7 +28,6 @@ void main() {
     normal = mat3(transpose(inverse(m_model))) * normalize(in_normal);
     gl_Position = m_proj * m_view * m_model * vec4(in_position, 1.0);
 
-    // вынести вычисления за пределы шейдеры
     mat4 shadowMVP = m_proj * m_view_light * m_model;
     shadowCoord = m_shadow_bias * shadowMVP * vec4(in_position, 1.0);
     shadowCoord.z -= 0.0005;
