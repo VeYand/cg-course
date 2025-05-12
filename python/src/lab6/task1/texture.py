@@ -11,8 +11,16 @@ class Texture:
         self.app = app
         self.textures['skybox'] = self.get_texture_cube(dir_path='textures/skybox/', ext='png')
         self.textures['depth_texture'] = self.get_depth_texture()
+        self.textures['stone'] = self.get_texture(path='textures/stone.png')
+        self.textures['dirt'] = self.get_texture(path='textures/dirt.png')
         self.textures['ferret'] = self.get_texture(path='objects/10019_ferret_v1_Diffuse.jpg')
         self.textures['hawk'] = self.get_texture(path='objects/10025_Hawk_v1_Diffuse.jpg')
+        self.textures['cat'] = self.get_texture(path='objects/Cat_diffuse.jpg')
+        self.textures['cactus'] = self.get_texture(path='objects/10436_Cactus_v1_Diffuse.jpg')
+        self.textures['plant'] = self.get_texture(path='objects/10446_Palm_Tree_v1_Diffuse.jpg')
+        self.textures['hedge'] = self.get_texture(path='objects/10449_Rectangular_Box_Hedge_v1_Diffuse.jpg')
+        self.textures['car'] = self.get_texture(path='objects/Car Uv.png')
+        self.textures['farmhouse'] = self.get_texture(path='objects/Farmhouse Texture.jpg')
 
     def get_depth_texture(self) -> mgl.Texture:
         depth_texture = self.app.ctx.depth_texture(self.app.WIN_SIZE)
